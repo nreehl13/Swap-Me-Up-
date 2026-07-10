@@ -43,7 +43,7 @@
 
     <!--================ CSS =================-->
 
-  <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css">
 
 </head>
 
@@ -147,7 +147,7 @@
 
     <!--================ Form Header ================-->
 
-    <div class="form-header">
+    <div class="form-header" id="formHeader">
 
         <span class="step">
 
@@ -171,17 +171,19 @@
 
     <!--================ Registration Form ================-->
 
-    <form class="signup-form">
+ <form class="signup-form" id="signupForm">
+   <div class="step-one" id="stepOne">
+     </div>
+
+    <!--================ FIRST ROW ================-->
+
+    <div class="form-row">
 
         <!-- Full Name -->
 
         <div class="input-group">
 
-            <label>
-
-                Full Name
-
-            </label>
+            <label>Full Name</label>
 
             <div class="input-box">
 
@@ -200,11 +202,7 @@
 
         <div class="input-group">
 
-            <label>
-
-                Email Address
-
-            </label>
+            <label>Email Address</label>
 
             <div class="input-box">
 
@@ -219,15 +217,17 @@
 
         </div>
 
+    </div>
+
+    <!--================ SECOND ROW ================-->
+
+    <div class="form-row">
+
         <!-- Phone -->
 
         <div class="input-group">
 
-            <label>
-
-                Phone Number
-
-            </label>
+            <label>Phone Number</label>
 
             <div class="input-box">
 
@@ -246,11 +246,7 @@
 
         <div class="input-group">
 
-            <label>
-
-                Government-issued ID
-
-            </label>
+            <label>Government-issued ID</label>
 
             <div class="input-box">
 
@@ -265,154 +261,141 @@
 
             <small>
 
-                Your information is encrypted and used only for identity verification.
+                Your information is encrypted and only used for identity verification.
 
             </small>
 
         </div>
 
-        <!-- Continue Button -->
+    </div>
 
-        <button
-            type="button"
-            class="continue-btn">
+    <!-- Continue -->
 
-            Continue
+    <button
+        type="button"
+        class="continue-btn">
 
-            <i class="fa-solid fa-arrow-right"></i>
+        Continue
 
-        </button>
-              <!--=========================================================
-                        STEP 2 - ACCOUNT SECURITY
-        ==========================================================-->
+        <i class="fa-solid fa-arrow-right"></i>
 
-        <div class="step-two">
+    </button>
 
-            <!-- Password -->
+    <!--================ STEP TWO ================-->
 
-            <div class="input-group">
+    <div class="step-two" id="stepTwo">
 
-                <label>
+        <!-- Password -->
 
-                    Password
+        <div class="input-group">
 
-                </label>
+            <label>Password</label>
 
-                <div class="input-box">
+            <div class="input-box">
 
-                    <i class="fa-solid fa-lock"></i>
+                <i class="fa-solid fa-lock"></i>
 
-                    <input
-                        type="password"
-                        placeholder="Create a password"
-                        id="password">
+                <input
+                    type="password"
+                    placeholder="Create a password"
+                    id="password">
 
-                    <button
-                        type="button"
-                        class="toggle-password">
+                <button
+                    type="button"
+                    class="toggle-password">
 
-                        <i class="fa-solid fa-eye"></i>
+                    <i class="fa-solid fa-eye"></i>
 
-                    </button>
-
-                </div>
+                </button>
 
             </div>
-
-            <!-- Confirm Password -->
-
-            <div class="input-group">
-
-                <label>
-
-                    Confirm Password
-
-                </label>
-
-                <div class="input-box">
-
-                    <i class="fa-solid fa-lock"></i>
-
-                    <input
-                        type="password"
-                        placeholder="Confirm your password"
-                        id="confirmPassword">
-
-                    <button
-                        type="button"
-                        class="toggle-password">
-
-                        <i class="fa-solid fa-eye"></i>
-
-                    </button>
-
-                </div>
-
-            </div>
-
-            <!-- Password Strength -->
-
-            <div class="password-strength">
-
-                <span>
-
-                    Password Strength
-
-                </span>
-
-                <div class="strength-bar">
-
-                    <div class="strength-level"></div>
-
-                </div>
-
-                <small>
-
-                    Use at least 8 characters including uppercase letters,
-                    numbers and symbols.
-
-                </small>
-
-            </div>
-
-            <!-- Terms -->
-
-            <div class="terms">
-
-                <label>
-
-                    <input
-                        type="checkbox">
-
-                    <span>
-
-                        I agree to the
-                        <a href="#">Terms of Service</a>
-                        and
-                        <a href="#">Privacy Policy</a>
-
-                    </span>
-
-                </label>
-
-            </div>
-
-            <!-- Create Account -->
-
-            <button
-                type="submit"
-                class="signup-btn">
-
-                Create Account
-
-                <i class="fa-solid fa-user-plus"></i>
-
-            </button>
 
         </div>
 
-    </form>
+        <!-- Confirm Password -->
 
+        <div class="input-group">
+
+            <label>Confirm Password</label>
+
+            <div class="input-box">
+
+                <i class="fa-solid fa-lock"></i>
+
+                <input
+                    type="password"
+                    placeholder="Confirm your password"
+                    id="confirmPassword">
+
+                <button
+                    type="button"
+                    class="toggle-password">
+
+                    <i class="fa-solid fa-eye"></i>
+
+                </button>
+
+            </div>
+
+        </div>
+
+        <!-- Password Strength -->
+
+        <div class="password-strength">
+
+            <span>Password Strength</span>
+
+            <div class="strength-bar">
+
+                <div class="strength-level"></div>
+
+            </div>
+
+            <small>
+
+                Use at least 8 characters including uppercase letters,
+                numbers and symbols.
+
+            </small>
+
+        </div>
+
+        <!-- Terms -->
+
+        <div class="terms">
+
+            <label>
+
+                <input type="checkbox">
+
+                <span>
+
+                    I agree to the
+                    <a href="#">Terms of Service</a>
+                    and
+                    <a href="#">Privacy Policy</a>
+
+                </span>
+
+            </label>
+
+        </div>
+
+        <!-- Create Account -->
+
+        <button
+            type="submit"
+            class="signup-btn">
+
+            Create Account
+
+            <i class="fa-solid fa-user-plus"></i>
+
+        </button>
+
+    </div>
+
+</form>
     <!--================ Sign In =================-->
 
     <div class="signin-link">
