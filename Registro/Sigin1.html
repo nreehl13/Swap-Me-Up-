@@ -17,9 +17,7 @@
         content="Create your Swap Me Up account.">
 
     <title>
-
         Create Account | Swap Me Up
-
     </title>
 
     <!--================ Google Fonts =================-->
@@ -43,7 +41,9 @@
 
     <!--================ CSS =================-->
 
-<link rel="stylesheet" href="style.css">
+    <link
+        rel="stylesheet"
+        href="Sigin1.css">
 
 </head>
 
@@ -56,361 +56,382 @@
     <section class="signup">
 
         <div class="signup-container">
-<!--================ LEFT PANEL ================-->
 
-<div class="signup-left">
+            <!--================ LEFT PANEL ================-->
 
-    <!--================ Logo ================-->
+            <div class="signup-left">
 
-    <div class="brand">
+                <!--================ Logo ================-->
 
-        <img
-            src="assets/images/logo-white.png"
-            alt="Swap Me Up Logo"
-            class="brand-logo">
+                <div class="brand">
 
-        <h1>
+                    <img
+                        src="assets/images/logo-white.png"
+                        alt="Swap Me Up Logo"
+                        class="brand-logo">
 
-            Every collectible deserves
-            a second story.
+                    <h1>
+                        Every collectible deserves
+                        a second story.
+                    </h1>
 
-        </h1>
+                    <p>
+                        Join a trusted community where collectors can safely
+                        trade, sell and auction collectibles while promoting
+                        sustainability through the circular economy.
+                    </p>
 
-        <p>
+                </div>
 
-            Join a trusted community where collectors can safely
-            trade, sell and auction collectibles while promoting
-            sustainability through the circular economy.
+                <!--================ Community Benefits ================-->
 
-        </p>
+                <div class="community-card">
 
-    </div>
+                    <h2>
+                        Why Join Swap Me Up?
+                    </h2>
 
-    <!--================ Community Benefits ================-->
+                    <div class="benefit">
 
-    <div class="community-card">
+                        <i class="fa-solid fa-shield-halved"></i>
 
-        <h2>
+                        <div>
 
-            Why Join Swap Me Up?
+                            <h3>Verified Community</h3>
 
-        </h2>
+                            <p>
+                                Identity verification helps create a safer marketplace.
+                            </p>
 
-        <div class="benefit">
+                        </div>
 
-            <i class="fa-solid fa-shield-halved"></i>
+                    </div>
 
-            <div>
+                    <div class="benefit">
 
-                <h3>Verified Community</h3>
+                        <i class="fa-solid fa-arrow-right-arrow-left"></i>
 
-                <p>Identity verification helps create a safer marketplace.</p>
+                        <div>
+
+                            <h3>Secure Exchanges</h3>
+
+                            <p>
+                                Trade, sell and auction with confidence.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <div class="benefit">
+
+                        <i class="fa-solid fa-leaf"></i>
+
+                        <div>
+
+                            <h3>Sustainable Impact</h3>
+
+                            <p>
+                                Every exchange helps reduce waste and extend product life.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!--================ RIGHT PANEL ================-->
+
+            <div class="signup-right">
+
+                <!--================ Form Header ================-->
+
+                <div class="form-header" id="formHeader">
+
+                    <span class="step">
+                        Step 1 of 2
+                    </span>
+
+                    <h2>
+                        Create Your Account
+                    </h2>
+
+                    <p>
+                        Let's start with your personal information.
+                    </p>
+
+                </div>
+
+                <!--================ Registration Form ================-->
+
+                <form
+                    class="signup-form"
+                    id="signupForm">
+
+                    <div
+                        class="step-one"
+                        id="stepOne">
+
+                    </div>
+
+                    <!--================ FIRST ROW ================-->
+
+                    <div class="form-row">
+
+                        <!-- Full Name -->
+
+                        <div class="input-group">
+
+                            <label>Full Name</label>
+
+                            <div class="input-box">
+
+                                <i class="fa-solid fa-user"></i>
+
+                                <input
+                                    type="text"
+                                    placeholder="Enter your full name"
+                                    id="signup-fullname"
+                                    required>
+
+                            </div>
+
+                        </div>
+
+                        <!-- Email -->
+
+                        <div class="input-group">
+
+                            <label>Email Address</label>
+
+                            <div class="input-box">
+
+                                <i class="fa-solid fa-envelope"></i>
+
+                                <input
+                                    type="email"
+                                    placeholder="Enter your email"
+                                    id="signup-email"
+                                    required>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!--================ SECOND ROW ================-->
+
+                    <div class="form-row">
+
+                        <!-- Phone -->
+
+                        <div class="input-group">
+
+                            <label>Phone Number</label>
+
+                            <div class="input-box">
+
+                                <i class="fa-solid fa-phone"></i>
+
+                                <input
+                                    type="tel"
+                                    placeholder="+507 6000-0000"
+                                    id="signup-phone"
+                                    required>
+
+                            </div>
+
+                        </div>
+
+                        <!-- Government ID -->
+
+                        <div class="input-group">
+
+                            <label>Government-issued ID</label>
+
+                            <div class="input-box">
+
+                                <i class="fa-solid fa-id-card"></i>
+
+                                <input
+                                    type="text"
+                                    placeholder="Enter your ID number"
+                                    id="signup-idcard"
+                                    required>
+
+                            </div>
+
+                            <small>
+                                Your information is encrypted and only used for identity verification.
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Continue -->
+
+                    <button
+                        type="button"
+                        class="continue-btn"
+                        id="continueBtn">
+
+                        Continue
+
+                        <i class="fa-solid fa-arrow-right"></i>
+
+                    </button>
+
+                    <!--================ STEP TWO ================-->
+
+                    <div
+                        class="step-two"
+                        id="stepTwo">
+
+                        <!-- Password -->
+
+                        <div class="input-group">
+
+                            <label>Password</label>
+
+                            <div class="input-box">
+
+                                <i class="fa-solid fa-lock"></i>
+
+                                <input
+                                    type="password"
+                                    placeholder="Create a password"
+                                    id="password">
+
+                                <button
+                                    type="button"
+                                    class="toggle-password">
+
+                                    <i class="fa-solid fa-eye"></i>
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                        <!-- Confirm Password -->
+
+                        <div class="input-group">
+
+                            <label>Confirm Password</label>
+
+                            <div class="input-box">
+
+                                <i class="fa-solid fa-lock"></i>
+
+                                <input
+                                    type="password"
+                                    placeholder="Confirm your password"
+                                    id="confirmPassword">
+
+                                <button
+                                    type="button"
+                                    class="toggle-password">
+
+                                    <i class="fa-solid fa-eye"></i>
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                        <!-- Password Strength -->
+
+                        <div class="password-strength">
+
+                            <span>
+                                Password Strength
+                            </span>
+
+                            <div class="strength-bar">
+
+                                <div class="strength-level"></div>
+
+                            </div>
+
+                            <small>
+                                Use at least 8 characters including uppercase letters,
+                                numbers and symbols.
+                            </small>
+
+                        </div>
+
+                        <!-- Terms -->
+
+                        <div class="terms">
+
+                            <label>
+
+                                <input type="checkbox">
+
+                                <span>
+
+                                    I agree to the
+                                    <a href="#">Terms of Service</a>
+                                    and
+                                    <a href="#">Privacy Policy</a>
+
+                                </span>
+
+                            </label>
+
+                        </div>
+
+                        <!-- Create Account -->
+
+                        <button
+                            type="submit"
+                            class="signup-btn">
+
+                            Create Account
+
+                            <i class="fa-solid fa-user-plus"></i>
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+                <!--================ Sign In ================-->
+
+                <div class="signin-link">
+
+                    <p>
+
+                        Already have an account?
+
+                        <a href="signin.html">
+                            Sign In
+                        </a>
+
+                    </p>
+
+                </div>
 
             </div>
 
         </div>
 
-        <div class="benefit">
+    </section>
 
-            <i class="fa-solid fa-arrow-right-arrow-left"></i>
+    <!--================ JAVASCRIPT =================-->
 
-            <div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
-                <h3>Secure Exchanges</h3>
+    <script src="script_SignIn.js"></script>
 
-                <p>Trade, sell and auction with confidence.</p>
+</body>
 
-            </div>
-
-        </div>
-
-        <div class="benefit">
-
-            <i class="fa-solid fa-leaf"></i>
-
-            <div>
-
-                <h3>Sustainable Impact</h3>
-
-                <p>Every exchange helps reduce waste and extend product life.</p>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-           <!--================ RIGHT PANEL ================-->
-
-<div class="signup-right">
-
-    <!--================ Form Header ================-->
-
-    <div class="form-header" id="formHeader">
-
-        <span class="step">
-
-            Step 1 of 2
-
-        </span>
-
-        <h2>
-
-            Create Your Account
-
-        </h2>
-
-        <p>
-
-            Let's start with your personal information.
-
-        </p>
-
-    </div>
-
-    <!--================ Registration Form ================-->
-
- <form class="signup-form" id="signupForm">
-   <div class="step-one" id="stepOne">
-     </div>
-
-    <!--================ FIRST ROW ================-->
-
-    <div class="form-row">
-
-        <!-- Full Name -->
-
-        <div class="input-group">
-
-            <label>Full Name</label>
-
-            <div class="input-box">
-
-                <i class="fa-solid fa-user"></i>
-
-                <input
-                    type="text"
-                    placeholder="Enter your full name"
-                    required>
-
-            </div>
-
-        </div>
-
-        <!-- Email -->
-
-        <div class="input-group">
-
-            <label>Email Address</label>
-
-            <div class="input-box">
-
-                <i class="fa-solid fa-envelope"></i>
-
-                <input
-                    type="email"
-                    placeholder="Enter your email"
-                    required>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <!--================ SECOND ROW ================-->
-
-    <div class="form-row">
-
-        <!-- Phone -->
-
-        <div class="input-group">
-
-            <label>Phone Number</label>
-
-            <div class="input-box">
-
-                <i class="fa-solid fa-phone"></i>
-
-                <input
-                    type="tel"
-                    placeholder="+507 6000-0000"
-                    required>
-
-            </div>
-
-        </div>
-
-        <!-- Government ID -->
-
-        <div class="input-group">
-
-            <label>Government-issued ID</label>
-
-            <div class="input-box">
-
-                <i class="fa-solid fa-id-card"></i>
-
-                <input
-                    type="text"
-                    placeholder="Enter your ID number"
-                    required>
-
-            </div>
-
-            <small>
-
-                Your information is encrypted and only used for identity verification.
-
-            </small>
-
-        </div>
-
-    </div>
-
-    <!-- Continue -->
-<button
-    type="button"
-    class="continue-btn"
-    onclick="window.location.href='security.html'">
-        Continue
-
-        <i class="fa-solid fa-arrow-right"></i>
-
-    </button>
-
-    <!--================ STEP TWO ================-->
-
-    <div class="step-two" id="stepTwo">
-
-        <!-- Password -->
-
-        <div class="input-group">
-
-            <label>Password</label>
-
-            <div class="input-box">
-
-                <i class="fa-solid fa-lock"></i>
-
-                <input
-                    type="password"
-                    placeholder="Create a password"
-                    id="password">
-
-                <button
-                    type="button"
-                    class="toggle-password">
-
-                    <i class="fa-solid fa-eye"></i>
-
-                </button>
-
-            </div>
-
-        </div>
-
-        <!-- Confirm Password -->
-
-        <div class="input-group">
-
-            <label>Confirm Password</label>
-
-            <div class="input-box">
-
-                <i class="fa-solid fa-lock"></i>
-
-                <input
-                    type="password"
-                    placeholder="Confirm your password"
-                    id="confirmPassword">
-
-                <button
-                    type="button"
-                    class="toggle-password">
-
-                    <i class="fa-solid fa-eye"></i>
-
-                </button>
-
-            </div>
-
-        </div>
-
-        <!-- Password Strength -->
-
-        <div class="password-strength">
-
-            <span>Password Strength</span>
-
-            <div class="strength-bar">
-
-                <div class="strength-level"></div>
-
-            </div>
-
-            <small>
-
-                Use at least 8 characters including uppercase letters,
-                numbers and symbols.
-
-            </small>
-
-        </div>
-
-        <!-- Terms -->
-
-        <div class="terms">
-
-            <label>
-
-                <input type="checkbox">
-
-                <span>
-
-                    I agree to the
-                    <a href="#">Terms of Service</a>
-                    and
-                    <a href="#">Privacy Policy</a>
-
-                </span>
-
-            </label>
-
-        </div>
-
-        <!-- Create Account -->
-
-        <button
-            type="submit"
-            class="signup-btn">
-
-            Create Account
-
-            <i class="fa-solid fa-user-plus"></i>
-
-        </button>
-
-    </div>
-
-</form>
-    <!--================ Sign In =================-->
-
-    <div class="signin-link">
-
-        <p>
-
-            Already have an account?
-
-            <a href="signin.html">
-
-                Sign In
-
-            </a>
-
-        </p>
-
-    </div>
-
-</div>
+</html>
