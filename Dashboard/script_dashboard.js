@@ -1,3 +1,21 @@
+// ============================================================
+// SESIÓN: obtenemos la sesión Y el usuario en una sola llamada.
+// Si no hay sesión, se redirige (misma protección que antes,
+// solo que ahora reutilizamos el user para cargar el perfil).
+// ============================================================
+let SMU_USER = null;
+let SMU_PROFILE = null;
+
+const smuSessionReady = (async () => {
+  const session = await smuGetSession();
+  if (!session) {
+    window.location.href = '../Registro/SignIn.html';
+    throw new Error('sin sesión');
+  }
+  SMU_USER = session.user;
+  return SMU_USER;
+})();
+
 const products=[
  ['Conejito suave','Peluches','2 a 5 años','2.3 km','https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?auto=format&fit=crop&w=700&q=85','Intercambio'],
  ['Oso explorador','Peluches','2 a 6 años','5.2 km','https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?auto=format&fit=crop&w=700&q=85','Venta'],
@@ -26,13 +44,193 @@ function view(name){document.querySelector('#homeView').hidden=name!=='home';doc
 document.querySelectorAll('[data-view]').forEach(x=>x.onclick=e=>{e.preventDefault();view(x.dataset.view)});
 const toast=t=>{const x=document.querySelector('#toast');x.textContent=t;x.hidden=false;setTimeout(()=>x.hidden=true,2500)},open=id=>document.querySelector('#'+id).hidden=false;
 document.querySelector('#postButton').onclick=()=>{resetPostForm();open('postModal')};document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>document.querySelector('#'+b.dataset.close).hidden=true);document.querySelectorAll('.modal-backdrop').forEach(x=>x.onclick=e=>{if(e.target===x)x.hidden=true});
-const profile={name:'Leticia Gómez',email:'leticia@email.com',location:'Panamá, Panamá',bio:'Mamá de dos peques, fan de los juguetes que duran para siempre. ♻️'};
-function edit(){['name','email','location','bio'].forEach(k=>document.querySelector('#'+k+'Field').value=profile[k]);open('editModal')}
-document.querySelector('#editProfile').onclick=edit;document.querySelector('#editInfo').onclick=edit;
-document.querySelector('#profileForm').onsubmit=e=>{e.preventDefault();['name','email','location','bio'].forEach(k=>profile[k]=document.querySelector('#'+k+'Field').value.trim());document.querySelector('#profileName').textContent=profile.name;document.querySelector('#shortName').textContent=profile.name.split(' ')[0];document.querySelector('#profileEmail').textContent=profile.email;document.querySelector('#profileLocation').textContent=profile.location;document.querySelector('#profileBio').textContent=profile.bio;document.querySelector('#editModal').hidden=true;toast('Perfil actualizado correctamente.')};
-document.querySelector('#logoutButton').onclick=()=>open('logoutModal');document.querySelector('#confirmLogout').onclick=()=>{document.querySelector('#logoutModal').hidden=true;toast('Sesión cerrada. Hasta pronto, Leticia.');setTimeout(()=>view('home'),900)};
+
+// ============================================================
+// PERFIL — reemplaza al antiguo objeto `profile` estático.
+// Toda lectura/escritura va contra Supabase (tabla profiles
+// y auth.users), nunca contra localStorage/sessionStorage.
+// ============================================================
+
+async function smuLoadProfile(user) {
+  let { data: row, error } = await smuSupabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Error cargando perfil:', error);
+  }
+
+  if (!row) {
+    // Cuenta existente o recién creada sin fila en profiles todavía:
+    // se auto-provisiona usando lo que ya guardó Sign Up en user_metadata.
+    const meta = user.user_metadata || {};
+    const initial = {
+      id: user.id,
+      name: meta.full_name || meta.name || '',
+      cedula: meta.id_card || meta.cedula || '',
+      phone: meta.phone || '',
+      avatar_url: null,
+      bio: '',
+      location: ''
+    };
+    const { data: created, error: insertError } = await smuSupabase
+      .from('profiles')
+      .insert(initial)
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('Error creando perfil:', insertError);
+      row = initial; // seguimos mostrando algo aunque falle el insert
+    } else {
+      row = created;
+    }
+  }
+
+  return row;
+}
+
+function smuRenderProfile() {
+  const name = SMU_PROFILE.name || (SMU_USER.email ? SMU_USER.email.split('@')[0] : 'Usuario');
+
+  document.querySelector('#profileName').textContent = name;
+  document.querySelector('#shortName').textContent = name.split(' ')[0];
+  document.querySelector('#profileEmail').textContent = SMU_USER.email || '—';
+  document.querySelector('#profilePhone').textContent = SMU_PROFILE.phone || '—';
+  document.querySelector('#profileCedula').textContent = SMU_PROFILE.cedula || '—';
+  document.querySelector('#profileLocation').textContent = SMU_PROFILE.location || '—';
+  document.querySelector('#profileBio').textContent = SMU_PROFILE.bio || '—';
+
+  if (SMU_PROFILE.avatar_url) {
+    avatar.src = SMU_PROFILE.avatar_url;
+  }
+
+  const memberSince = document.querySelector('#memberSince');
+  if (memberSince && SMU_USER.created_at) {
+    memberSince.textContent = new Date(SMU_USER.created_at).getFullYear();
+  }
+}
+
+function smuOpenEditModal() {
+  if (!SMU_PROFILE) { toast('Tu perfil todavía se está cargando, intenta de nuevo.'); return; }
+  document.querySelector('#nameField').value = SMU_PROFILE.name || '';
+  document.querySelector('#emailField').value = SMU_USER.email || '';
+  document.querySelector('#phoneField').value = SMU_PROFILE.phone || '';
+  document.querySelector('#locationField').value = SMU_PROFILE.location || '';
+  document.querySelector('#bioField').value = SMU_PROFILE.bio || '';
+  document.querySelector('#profileFormError').hidden = true;
+  open('editModal');
+}
+document.querySelector('#editProfile').onclick = smuOpenEditModal;
+document.querySelector('#editInfo').onclick = smuOpenEditModal;
+
+document.querySelector('#profileForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const errorBox = document.querySelector('#profileFormError');
+  errorBox.hidden = true;
+
+  const name = document.querySelector('#nameField').value.trim();
+  const phone = document.querySelector('#phoneField').value.trim();
+  const location = document.querySelector('#locationField').value.trim();
+  const bio = document.querySelector('#bioField').value.trim();
+
+  if (!name || !location) {
+    errorBox.textContent = 'El nombre y la ubicación son obligatorios.';
+    errorBox.hidden = false;
+    return;
+  }
+
+  const { data, error } = await smuSupabase
+    .from('profiles')
+    .update({ name, phone, location, bio })
+    .eq('id', SMU_USER.id)
+    .select()
+    .single();
+
+  if (error) {
+    errorBox.textContent = 'No se pudo guardar: ' + error.message;
+    errorBox.hidden = false;
+    return;
+  }
+
+  SMU_PROFILE = data;
+  smuRenderProfile();
+  document.querySelector('#editModal').hidden = true;
+  toast('Perfil actualizado correctamente.');
+};
+
+document.querySelector('#logoutButton').onclick=()=>open('logoutModal');
+document.querySelector('#confirmLogout').onclick=async ()=>{
+  document.querySelector('#logoutModal').hidden=true;
+  const { error } = await smuSupabase.auth.signOut();
+  if (error) { toast('No se pudo cerrar sesión: ' + error.message); return; }
+  toast('Sesión cerrada. Hasta pronto.');
+  setTimeout(()=>{ window.location.href = '../Registro/SignIn.html'; }, 900);
+};
 const sideMenu=document.querySelector('.side nav');Object.assign(sideMenu.style,{display:'grid',gridTemplateColumns:'1fr',gap:'4px',alignItems:'stretch',width:'100%'});
-const avatar=document.querySelector('.avatar'),photoBox=document.createElement('div'),photoButton=document.createElement('button'),photoInput=document.createElement('input');Object.assign(photoBox.style,{position:'relative',width:'124px',height:'124px',flex:'0 0 124px'});avatar.parentNode.insertBefore(photoBox,avatar);photoBox.appendChild(avatar);Object.assign(photoButton.style,{position:'absolute',right:'0',bottom:'0',width:'37px',height:'37px',borderRadius:'50%',border:'3px solid white',background:'#2d6738',color:'white',fontSize:'16px'});photoButton.type='button';photoButton.innerHTML='<i class="bi bi-camera-fill"></i>';photoButton.title='Cambiar foto de perfil';photoBox.appendChild(photoButton);photoInput.type='file';photoInput.accept='image/png,image/jpeg,image/webp';photoInput.hidden=true;photoBox.appendChild(photoInput);photoButton.onclick=()=>photoInput.click();photoInput.onchange=()=>{const file=photoInput.files[0];if(!file)return;if(file.size>5*1024*1024){toast('Elige una foto de hasta 5 MB.');return}const reader=new FileReader();reader.onload=event=>{avatar.src=event.target.result;toast('Foto de perfil actualizada.');};reader.readAsDataURL(file)};
+
+// ============================================================
+// FOTO DE PERFIL — ahora sube realmente a Supabase Storage
+// (bucket "avatars") y guarda la URL en profiles.avatar_url.
+// ============================================================
+const avatar=document.querySelector('.avatar'),photoBox=document.createElement('div'),photoButton=document.createElement('button'),photoInput=document.createElement('input');Object.assign(photoBox.style,{position:'relative',width:'124px',height:'124px',flex:'0 0 124px'});avatar.parentNode.insertBefore(photoBox,avatar);photoBox.appendChild(avatar);Object.assign(photoButton.style,{position:'absolute',right:'0',bottom:'0',width:'37px',height:'37px',borderRadius:'50%',border:'3px solid white',background:'#2d6738',color:'white',fontSize:'16px'});photoButton.type='button';photoButton.innerHTML='<i class="bi bi-camera-fill"></i>';photoButton.title='Cambiar foto de perfil';photoBox.appendChild(photoButton);photoInput.type='file';photoInput.accept='image/png,image/jpeg,image/webp';photoInput.hidden=true;photoBox.appendChild(photoInput);photoButton.onclick=()=>photoInput.click();
+
+photoInput.onchange = async () => {
+  const file = photoInput.files[0];
+  if (!file) return;
+
+  if (!SMU_USER) { toast('Tu sesión todavía se está cargando, intenta de nuevo.'); return; }
+
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+  if (!allowedTypes.includes(file.type)) {
+    toast('Formato no permitido. Usa JPG, PNG o WEBP.');
+    photoInput.value = '';
+    return;
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    toast('Elige una foto de hasta 5 MB.');
+    photoInput.value = '';
+    return;
+  }
+
+  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+  const path = `${SMU_USER.id}/avatar.${ext}`;
+
+  toast('Subiendo foto…');
+
+  const { error: uploadError } = await smuSupabase
+    .storage
+    .from('avatars')
+    .upload(path, file, { upsert: true, cacheControl: '3600' });
+
+  if (uploadError) {
+    toast('No se pudo subir la foto: ' + uploadError.message);
+    photoInput.value = '';
+    return;
+  }
+
+  const { data: publicUrlData } = smuSupabase.storage.from('avatars').getPublicUrl(path);
+  const avatarUrl = publicUrlData.publicUrl + '?t=' + Date.now(); // evita caché tras reemplazar
+
+  const { error: updateError } = await smuSupabase
+    .from('profiles')
+    .update({ avatar_url: avatarUrl })
+    .eq('id', SMU_USER.id);
+
+  if (updateError) {
+    toast('Foto subida pero no se pudo guardar en tu perfil: ' + updateError.message);
+    photoInput.value = '';
+    return;
+  }
+
+  if (SMU_PROFILE) SMU_PROFILE.avatar_url = avatarUrl;
+  avatar.src = avatarUrl;
+  toast('Foto de perfil actualizada.');
+  photoInput.value = '';
+};
+
 // Al entrar se ven todos los tipos; las tres pestañas filtran cuando se pulsan.
 mode='Todos';firstMarketTab.classList.remove('active');Object.assign(firstMarketTab.style,{background:'#fffdf8',color:'#4b3929',borderColor:'#e8d9c0'});
 render();
@@ -51,3 +249,16 @@ document.querySelector('#postForm').onsubmit=e=>{
  document.querySelector('#postModal').hidden=true;
  toast('Artículo listo. La conexión con Supabase se activará próximamente.');
 };
+
+// ============================================================
+// Arranque: espera la sesión, carga el perfil real y lo pinta.
+// ============================================================
+(async function bootProfile() {
+  try {
+    await smuSessionReady;
+  } catch {
+    return; // ya se redirigió a SignIn.html
+  }
+  SMU_PROFILE = await smuLoadProfile(SMU_USER);
+  smuRenderProfile();
+})();
