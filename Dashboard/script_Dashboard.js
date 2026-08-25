@@ -90,27 +90,55 @@ function smuUpdateSortOptions() {
   }
 }
 
+// ------------------------------------------------------------
+// NUEVO: orden client-side aplicado solo cuando el usuario pide
+// un orden distinto al de relevancia mientras hay texto de
+// búsqueda activo (search_products ya llega ordenado por
+// similitud desde Postgres).
+// ------------------------------------------------------------
+function smuApplyClientSort(list, sortModeValue) {
+  const sorted = [...list];
+  switch (sortModeValue) {
+    case 'antiguos': sorted.sort((a, b) => new Date(a.created_at) - new Date(b.created_at)); break;
+    case 'nombre_az': sorted.sort((a, b) => a.title.localeCompare(b.title)); break;
+    case 'nombre_za': sorted.sort((a, b) => b.title.localeCompare(a.title)); break;
+    case 'precio_asc': sorted.sort((a, b) => (a.price ?? Infinity) - (b.price ?? Infinity)); break;
+    case 'precio_desc': sorted.sort((a, b) => (b.price ?? -Infinity) - (a.price ?? -Infinity)); break;
+  }
+  return sorted;
+}
+
 async function render() {
-  const q = input.value.toLowerCase().trim();
-  let qb = smuSupabase.from('products').select('*').eq('status', 'Disponible');
+  const q = input.value.trim();
+  let list = [];
 
-  if (category !== 'Todos') qb = qb.eq('category', category);
-  if (mode !== 'Todos') qb = qb.eq('transaction_type', mode);
-  if (q) qb = qb.or(`title.ilike.%${q}%,description.ilike.%${q}%`);
+  if (q) {
+    // Búsqueda tolerante a errores/acentos + relevancia, vía RPC en Postgres.
+    const { data, error } = await smuSupabase.rpc('search_products', { search_term: q });
+    if (error) { console.error('Error searching products:', error); toast('Could not load products.'); return; }
+    list = data || [];
+    if (category !== 'Todos') list = list.filter(p => p.category === category);
+    if (mode !== 'Todos') list = list.filter(p => p.transaction_type === mode);
+    if (sortMode !== 'recientes') list = smuApplyClientSort(list, sortMode);
+  } else {
+    let qb = smuSupabase.from('products').select('*').eq('status', 'Disponible');
+    if (category !== 'Todos') qb = qb.eq('category', category);
+    if (mode !== 'Todos') qb = qb.eq('transaction_type', mode);
 
-  switch (sortMode) {
-    case 'antiguos': qb = qb.order('created_at', { ascending: true }); break;
-    case 'nombre_az': qb = qb.order('title', { ascending: true }); break;
-    case 'nombre_za': qb = qb.order('title', { ascending: false }); break;
-    case 'precio_asc': qb = qb.order('price', { ascending: true, nullsFirst: false }); break;
-    case 'precio_desc': qb = qb.order('price', { ascending: false, nullsFirst: false }); break;
-    default: qb = qb.order('created_at', { ascending: false });
+    switch (sortMode) {
+      case 'antiguos': qb = qb.order('created_at', { ascending: true }); break;
+      case 'nombre_az': qb = qb.order('title', { ascending: true }); break;
+      case 'nombre_za': qb = qb.order('title', { ascending: false }); break;
+      case 'precio_asc': qb = qb.order('price', { ascending: true, nullsFirst: false }); break;
+      case 'precio_desc': qb = qb.order('price', { ascending: false, nullsFirst: false }); break;
+      default: qb = qb.order('created_at', { ascending: false });
+    }
+
+    const { data, error } = await qb;
+    if (error) { console.error('Error loading products:', error); toast('Could not load products.'); return; }
+    list = data || [];
   }
 
-  const { data, error } = await qb;
-  if (error) { console.error('Error loading products:', error); toast('Could not load products.'); return; }
-
-  let list = data || [];
   if (favoritesOnly) list = list.filter(p => SMU_FAVORITES.has(p.id));
 
   grid.innerHTML = list.map(smuProductCard).join('');
@@ -140,6 +168,8 @@ document.querySelector('#searchForm').onsubmit = e => {
   document.querySelector('#explorar').scrollIntoView({ behavior: 'smooth' });
   document.querySelector('#clearFilters').hidden = !input.value && category === 'Todos' && mode === 'Todos';
 };
+// NUEVO: si el usuario borra el texto de búsqueda, vuelve a mostrar todo (búsqueda vacía = sin filtro de texto).
+input.addEventListener('input', () => { if (!input.value.trim()) render(); });
 document.querySelector('#clearFilters').onclick = () => {
   category = 'Todos'; mode = 'Todos'; input.value = '';
   document.querySelector('.category.active').classList.remove('active');
@@ -164,7 +194,7 @@ document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => documen
 document.querySelectorAll('.modal-backdrop').forEach(x => x.onclick = e => { if (e.target === x) x.hidden = true });
 
 // ============================================================
-// PROFILE (unchanged logic from previous version)
+// PROFILE
 // ============================================================
 async function smuLoadProfile(user) {
   let { data: row, error } = await smuSupabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
@@ -232,7 +262,7 @@ document.querySelector('#confirmLogout').onclick = async () => {
 const sideMenu = document.querySelector('.side nav'); Object.assign(sideMenu.style, { display: 'grid', gridTemplateColumns: '1fr', gap: '4px', alignItems: 'stretch', width: '100%' });
 
 // ============================================================
-// PROFILE PHOTO (unchanged)
+// PROFILE PHOTO
 // ============================================================
 const avatar = document.querySelector('.avatar'), photoBox = document.createElement('div'), photoButton = document.createElement('button'), photoInput = document.createElement('input');
 Object.assign(photoBox.style, { position: 'relative', width: '124px', height: '124px', flex: '0 0 124px' });
@@ -262,6 +292,26 @@ photoInput.onchange = async () => {
 };
 
 // ============================================================
+// STATS (NUEVO) — Trades / Posted / Favorites reales, sin números falsos
+// ============================================================
+async function smuUpdateStats() {
+  const { count: postedCount, error: postedErr } = await smuSupabase
+    .from('products').select('id', { count: 'exact', head: true }).eq('user_id', SMU_USER.id);
+  if (!postedErr) document.querySelector('#statPosted').textContent = postedCount ?? 0;
+
+  document.querySelector('#statFavorites').textContent = SMU_FAVORITES.size;
+
+  // MVP: "Trades" cuenta productos propios marcados como Intercambiado/Vendido.
+  // Es una aproximación unilateral (solo cuenta el lado publicador) porque hoy
+  // no existe una tabla de transacciones bilaterales en Supabase. Si se necesita
+  // trazabilidad de ambas partes, hay que crear una tabla "transactions".
+  const { count: tradesCount, error: tradesErr } = await smuSupabase
+    .from('products').select('id', { count: 'exact', head: true })
+    .eq('user_id', SMU_USER.id).in('status', ['Intercambiado', 'Vendido']);
+  if (!tradesErr) document.querySelector('#statTrades').textContent = tradesCount ?? 0;
+}
+
+// ============================================================
 // FAVORITES
 // ============================================================
 async function smuLoadFavorites() {
@@ -279,6 +329,7 @@ async function smuToggleFavorite(productId) {
     else toast('Could not save favorite: ' + error.message);
   }
   render();
+  smuUpdateStats();
   if (!document.querySelector('#productModal').hidden && SMU_CURRENT_PRODUCT && SMU_CURRENT_PRODUCT.id === productId) {
     smuOpenProductDetail(productId);
   }
@@ -292,24 +343,30 @@ async function smuOpenProductDetail(productId) {
   if (error || !p) { toast('Could not load product.'); return; }
   SMU_CURRENT_PRODUCT = p;
 
-  const { data: ownerProfile } = await smuSupabase.from('profiles').select('name, avatar_url').eq('id', p.user_id).maybeSingle();
+  // NUEVO: se consulta la vista pública (sin cédula) en vez de la tabla "profiles"
+  // directamente, para que la información privada de terceros nunca viaje al cliente.
+  const { data: ownerProfile } = await smuSupabase.from('public_profiles').select('name, avatar_url').eq('id', p.user_id).maybeSingle();
   const ownerName = ownerProfile?.name || 'User';
   const isMine = SMU_USER.id === p.user_id;
   const isFav = SMU_FAVORITES.has(p.id);
 
   document.querySelector('#productDetailBody').innerHTML = `
-    <p class="eyebrow">${smuCategoryLabel(p.category)} · <span class="type-badge ${p.transaction_type.toLowerCase()}">${smuModeLabel(p.transaction_type)}</span></p>
+    <p class="eyebrow">${smuCategoryLabel(p.category)} · <span class="type-badge ${p.transaction_type.toLowerCase()}">${smuModeLabel(p.transaction_type)}</span> · ${smuStatusLabel(p.status)}</p>
     <h2>${p.title}</h2>
-    <div class="detail-gallery">${p.images.map((src, i) => `<img src="${src}" alt="${p.title} ${i + 1}">`).join('')}</div>
+    <div class="detail-gallery">${p.images.map((src, i) => `<img src="${src}" alt="${p.title} ${i + 1}" class="lightbox-trigger" data-i="${i}">`).join('')}</div>
     <p>${p.description || 'No description.'}</p>
     <p class="detail-price"><strong>${smuPriceLabel(p)}</strong></p>
     <p class="detail-owner">Posted by: <strong>${ownerName}</strong>${isMine ? ' (you)' : ' <button type="button" id="viewOwnerBtn" class="clear">View profile</button>'}</p>
     <div class="detail-actions">
-      <button type="button" id="detailFavBtn" class="fav-btn ${isFav ? 'active' : ''}"><i class="bi ${isFav ? 'bi-heart-fill' : 'bi-heart'}"></i> Favorite</button>
+      <button type="button" id="detailFavBtn" class="fav-btn ${isFav ? 'active' : ''}"><i class="bi ${isFav ? 'bi-heart-fill' : 'bi-heart'}"></i> ${isFav ? 'Favorited' : 'Favorite'}</button>
       ${isMine ? '' : '<button type="button" id="contactBtn">Request contact</button>'}
     </div>`;
 
   document.querySelector('#detailFavBtn').onclick = () => smuToggleFavorite(p.id);
+  // NUEVO: lightbox de imágenes del producto
+  document.querySelectorAll('#productDetailBody .lightbox-trigger').forEach(img => {
+    img.onclick = () => smuOpenLightbox(p.images, Number(img.dataset.i));
+  });
   const viewOwnerBtn = document.querySelector('#viewOwnerBtn');
   if (viewOwnerBtn) viewOwnerBtn.onclick = () => smuOpenOwnerProfile(p.user_id, ownerName, ownerProfile?.avatar_url);
   const contactBtn = document.querySelector('#contactBtn');
@@ -324,9 +381,23 @@ async function smuRequestContact(p) {
   toast('Contact request sent.');
 }
 
+// NUEVO: perfil de otro usuario ahora también muestra teléfono y antigüedad real,
+// consultando siempre la vista pública "public_profiles" (nunca "profiles" de un tercero).
 async function smuOpenOwnerProfile(ownerId, name, avatarUrl) {
-  document.querySelector('#ownerModalBody').innerHTML = `<img class="avatar" src="${avatarUrl || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&q=85'}" alt="${name}"><h2>${name}</h2><div id="ownerProducts">Loading items…</div>`;
+  document.querySelector('#ownerModalBody').innerHTML = `
+    <img class="avatar" src="${avatarUrl || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&q=85'}" alt="${name}">
+    <h2>${name}</h2>
+    <p id="ownerMemberSince" class="member" style="text-align:center"></p>
+    <p id="ownerPhone" class="member" style="text-align:center"></p>
+    <div id="ownerProducts">Loading items…</div>`;
   open('ownerModal');
+
+  const { data: pub } = await smuSupabase.from('public_profiles').select('phone, created_at').eq('id', ownerId).maybeSingle();
+  if (pub) {
+    document.querySelector('#ownerMemberSince').innerHTML = pub.created_at ? `<i class="bi bi-patch-check-fill"></i> Member since ${new Date(pub.created_at).getFullYear()}` : '';
+    document.querySelector('#ownerPhone').innerHTML = pub.phone ? `<i class="bi bi-telephone"></i> ${pub.phone}` : '';
+  }
+
   const { data } = await smuSupabase.from('products').select('*').eq('user_id', ownerId).eq('status', 'Disponible');
   const box = document.querySelector('#ownerProducts');
   box.innerHTML = (data && data.length) ? `<div class="product-grid">${data.map(smuProductCard).join('')}</div>` : '<p>No items available.</p>';
@@ -336,6 +407,40 @@ async function smuOpenOwnerProfile(ownerId, name, avatarUrl) {
     card.onclick = () => { document.querySelector('#ownerModal').hidden = true; smuOpenProductDetail(card.dataset.id); };
   });
 }
+
+// ============================================================
+// IMAGE LIGHTBOX (NUEVO)
+// ============================================================
+let SMU_LIGHTBOX_IMAGES = [], SMU_LIGHTBOX_INDEX = 0;
+
+function smuRenderLightbox() {
+  document.querySelector('#lightboxImage').src = SMU_LIGHTBOX_IMAGES[SMU_LIGHTBOX_INDEX];
+  const thumbs = document.querySelector('#lightboxThumbs');
+  const multi = SMU_LIGHTBOX_IMAGES.length > 1;
+  thumbs.hidden = !multi;
+  document.querySelector('#lightboxPrev').hidden = !multi;
+  document.querySelector('#lightboxNext').hidden = !multi;
+  if (multi) {
+    thumbs.innerHTML = SMU_LIGHTBOX_IMAGES.map((src, i) => `<img src="${src}" data-i="${i}" class="${i === SMU_LIGHTBOX_INDEX ? 'active' : ''}">`).join('');
+    thumbs.querySelectorAll('img').forEach(t => t.onclick = () => { SMU_LIGHTBOX_INDEX = Number(t.dataset.i); smuRenderLightbox(); });
+  }
+}
+
+function smuOpenLightbox(images, startIndex) {
+  SMU_LIGHTBOX_IMAGES = images;
+  SMU_LIGHTBOX_INDEX = startIndex || 0;
+  smuRenderLightbox();
+  open('lightboxModal');
+}
+
+document.querySelector('#lightboxPrev').onclick = () => {
+  SMU_LIGHTBOX_INDEX = (SMU_LIGHTBOX_INDEX - 1 + SMU_LIGHTBOX_IMAGES.length) % SMU_LIGHTBOX_IMAGES.length;
+  smuRenderLightbox();
+};
+document.querySelector('#lightboxNext').onclick = () => {
+  SMU_LIGHTBOX_INDEX = (SMU_LIGHTBOX_INDEX + 1) % SMU_LIGHTBOX_IMAGES.length;
+  smuRenderLightbox();
+};
 
 // ============================================================
 // MY PUBLISHED ITEMS
@@ -374,7 +479,8 @@ async function smuChangeStatus(id, status) {
   if (error) { toast('Could not update status: ' + error.message); return; }
   toast('Status updated.');
   render();
-}
+  smuUpdateStats();
+};
 
 async function smuDeleteProductImages(productId) {
   const prefix = `${SMU_USER.id}/${productId}`;
@@ -392,10 +498,11 @@ async function smuDeleteProduct(id) {
   toast('Product deleted.');
   smuRenderMyProducts();
   render();
+  smuUpdateStats();
 }
 
 // ============================================================
-// POST ITEM (connected to Supabase)
+// POST ITEM
 // ============================================================
 let postTipo = '', postImages = [];
 const postValorLabel = document.querySelector('#postValorLabel');
@@ -482,6 +589,7 @@ document.querySelector('#postForm').onsubmit = async (e) => {
     toast('Item posted successfully.');
     render();
     smuRenderMyProducts();
+    smuUpdateStats();
   } catch (err) {
     errorBox.textContent = 'Could not post item: ' + err.message;
     errorBox.hidden = false;
@@ -582,6 +690,7 @@ document.querySelector('#editProductForm').onsubmit = async (e) => {
     toast('Product updated.');
     smuRenderMyProducts();
     render();
+    smuUpdateStats();
   } catch (err) {
     errorBox.textContent = 'Could not save: ' + err.message;
     errorBox.hidden = false;
@@ -608,4 +717,5 @@ smuUpdateSortOptions();
   await smuLoadFavorites();
   render();
   smuRenderMyProducts();
+  smuUpdateStats();
 })();
