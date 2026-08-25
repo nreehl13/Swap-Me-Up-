@@ -176,3 +176,95 @@ if (btnLogin) {
         window.location.href = 'Registro/SignIn.html';
     });
 }
+// telefono XD
+const phoneMockup = document.querySelector('#phoneMockup');
+
+if (phoneMockup) {
+    phoneMockup.addEventListener('mousemove', (event) => {
+        const rect = phoneMockup.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        const rotateY = ((x / rect.width) - 0.5) * 18;
+        const rotateX = ((y / rect.height) - 0.5) * -18;
+
+        phoneMockup.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+    });
+
+    phoneMockup.addEventListener('mouseleave', () => {
+        phoneMockup.style.transform = 'rotateX(0deg) rotateY(0deg)';
+    });
+}
+// navbar arreglado y bonito
+
+const navbar = document.querySelector('#mainNav');
+let lastScrollY = window.scrollY;
+
+const handleNavbar = () => {
+    const currentScrollY = window.scrollY;
+
+    if (!navbar) return;
+
+    if (currentScrollY < 80) {
+        navbar.classList.remove('navbar-scrolled', 'nav-hidden');
+    } else {
+        navbar.classList.add('navbar-scrolled');
+
+        if (currentScrollY > lastScrollY + 8) {
+            navbar.classList.add('nav-hidden');
+        }
+
+        if (currentScrollY < lastScrollY - 8) {
+            navbar.classList.remove('nav-hidden');
+        }
+    }
+
+    lastScrollY = currentScrollY;
+};
+
+handleNavbar();
+document.addEventListener('scroll', handleNavbar);
+
+// Formulario 
+const contactForm = document.querySelector('#contactForm');
+const formStatus = document.querySelector('#formStatus');
+const submitButton = document.querySelector('#submitButton');
+
+if (contactForm) {
+    contactForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const formData = {
+            name: document.querySelector('#name').value.trim(),
+            email: document.querySelector('#email').value.trim(),
+            phone: document.querySelector('#phone').value.trim(),
+            message: document.querySelector('#message').value.trim()
+        };
+
+        submitButton.disabled = true;
+        submitButton.textContent = 'Sending...';
+        formStatus.textContent = '';
+        formStatus.className = 'form-status';
+
+        try {
+            await fetch('https://defaultd8e3bd440bba426b952dada7bb1739.3c.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/13/workflows/60241aa11f9e44f8963f328893d331d0/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=_47D_Ax2q0n0_RDBRPlaNAbk5b6oyW_XwjFebwMQcgo', {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'text/plain'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            contactForm.reset();
+            formStatus.textContent = 'Message sent successfully.';
+            formStatus.classList.add('success');
+        } catch (error) {
+            formStatus.textContent = 'Something went wrong. Please try again.';
+            formStatus.classList.add('error');
+        }
+
+        submitButton.disabled = false;
+        submitButton.textContent = 'Submit';
+    });
+}
