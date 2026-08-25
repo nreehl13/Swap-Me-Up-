@@ -89,8 +89,7 @@
 
                 <button
                     class="btn btn-login"
-                    data-bs-toggle="modal"
-                    data-bs-target="#loginModal">
+                    id="btnLogin">
 
                     Sign In
 
@@ -445,7 +444,7 @@
                             <img class="img-fluid" src="assets/img/Mario.png" alt="..." />
                             <div class="portfolio-box-caption">
                                 <div class="project-category text-white-50">Category</div>
-                                <div class="project-name">Project Name</div>
+                                <div class="project-name">Games</div>
                             </div>
                         </a>
                     </div>
@@ -454,7 +453,7 @@
                             <img class="img-fluid" src="assets/img/perfumito.png" alt="..." />
                             <div class="portfolio-box-caption">
                                 <div class="project-category text-white-50">Category</div>
-                                <div class="project-name">Project Name</div>
+                                <div class="project-name">Scent</div>
                             </div>
                         </a>
                     </div>
@@ -463,7 +462,7 @@
                             <img class="img-fluid" src="assets/img/Revista.png" alt="..." />
                             <div class="portfolio-box-caption">
                                 <div class="project-category text-white-50">Category</div>
-                                <div class="project-name">Project Name</div>
+                                <div class="project-name">Magazines</div>
                             </div>
                         </a>
                     </div>
@@ -472,7 +471,7 @@
                             <img class="img-fluid" src="assets/img/Videojuego y cartas.png" alt="..." />
                             <div class="portfolio-box-caption">
                                 <div class="project-category text-white-50">Category</div>
-                                <div class="project-name">Project Name</div>
+                                <div class="project-name">Stikers</div>
                             </div>
                         </a>
                     </div>
@@ -481,7 +480,7 @@
                             <img class="img-fluid" src="assets/img/zapatilla.png" alt="..." />
                             <div class="portfolio-box-caption">
                                 <div class="project-category text-white-50">Category</div>
-                                <div class="project-name">Project Name</div>
+                                <div class="project-name">Store</div>
                             </div>
                         </a>
                     </div>
@@ -490,13 +489,113 @@
                             <img class="img-fluid" src="assets/img/Cartas super coool8.png" alt="..." />
                             <div class="portfolio-box-caption p-3">
                                 <div class="project-category text-white-50">Category</div>
-                                <div class="project-name">Project Name</div>
+                                <div class="project-name">Cards</div>
                             </div>
                         </a>
                     </div>
                 </div>
             </div>
         </div>
+     <!-- PHONE APP PREVIEW -->
+<section class="app-preview-section" id="app-preview">
+    <div class="container px-4 px-lg-5">
+        <div class="app-preview-content">
+            <div class="app-preview-text">
+                <span>App Preview</span>
+                <h2>Swap Me Up in your pocket</h2>
+                <p>
+                    Trade, buy, auction, and manage your credits from a fast, visual, and secure experience.
+
+                </p>
+
+                <div class="app-preview-actions">
+                    <a href="#categories" class="app-preview-btn primary">
+                        Explore categories
+
+                    </a>
+
+                    <a href="#premium" class="app-preview-btn ghost">
+                        View plans
+
+                    </a>
+                </div>
+            </div>
+
+            <div class="phone-stage">
+                <div class="phone-mockup" id="phoneMockup">
+                    <div class="phone-shine"></div>
+
+                    <div class="phone-screen">
+                        <div class="phone-topbar"></div>
+
+                        <div class="phone-card featured">
+                            <small>Featured Swap</small>
+                            <strong>Nintendo Switch</strong>
+                            <span>Available near you · 12 SMU credits</span>
+                        </div>
+
+                        <div class="phone-search">
+                            <i class="bi bi-search"></i>
+                            <span>Search items...</span>
+                        </div>
+
+                        <div class="phone-grid">
+                            <div>
+                                <i class="bi bi-arrow-left-right"></i>
+                                <span>Swap</span>
+                            </div>
+
+                            <div>
+                                <i class="bi bi-bell-fill"></i>
+                                <span>Auctions</span>
+                            </div>
+
+                            <div>
+                                <i class="bi bi-cash-stack"></i>
+                                <span>Credits</span>
+                            </div>
+
+                            <div>
+                                <i class="bi bi-shield-check"></i>
+                                <span>Safe</span>
+                            </div>
+                        </div>
+
+                        <a href="#categories" class="phone-action">
+                            Swap
+
+                        </a>
+
+                        <div class="phone-nav">
+                            <i class="bi bi-house-fill"></i>
+                            <i class="bi bi-search"></i>
+                            <i class="bi bi-plus-circle-fill"></i>
+                            <i class="bi bi-bell"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="phone-pill pill-one">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                    Quick swaps
+
+                </div>
+
+                <div class="phone-pill pill-two">
+                    <i class="bi bi-stars"></i>
+                    Verified profiles
+
+                </div>
+
+                <div class="phone-pill pill-three">
+                    <i class="bi bi-coin"></i>
+                    SMU Credits
+
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
         <!-- parte de planes premium-->
         <section class="premium-section" id="premium">
     <div class="container px-4 px-lg-5">
@@ -607,60 +706,56 @@
 </p>
                 </div>
                 <div class="row gx-4 gx-lg-5 justify-content-center mb-5">
-                    <div class="col-lg-6">
-                        <!-- * * * * * * * * * * * * * * *-->
-                        <!-- * * SB Forms Contact Form * *-->
-                        <!-- * * * * * * * * * * * * * * *-->
-                        <!-- This form is pre-integrated with SB Forms.-->
-                        <!-- To make this form functional, sign up at-->
-                        <!-- https://startbootstrap.com/solution/contact-forms-->
-                        <!-- to get an API token!-->
-                        <form id="contactForm" data-sb-form-api-token="API_TOKEN">
-                            <!-- Name input-->
-                            <div class="form-floating mb-3">
-                                <input class="form-control" id="name" type="text" placeholder="Enter your name..." data-sb-validations="required" />
-                                <label for="name">Full name</label>
-                                <div class="invalid-feedback" data-sb-feedback="name:required">A name is required.</div>
-                            </div>
-                            <!-- Email address input-->
-                            <div class="form-floating mb-3">
-                                <input class="form-control" id="email" type="email" placeholder="name@example.com" data-sb-validations="required,email" />
-                                <label for="email">Email address</label>
-                                <div class="invalid-feedback" data-sb-feedback="email:required">An email is required.</div>
-                                <div class="invalid-feedback" data-sb-feedback="email:email">Email is not valid.</div>
-                            </div>
-                            <!-- Phone number input-->
-                            <div class="form-floating mb-3">
-                                <input class="form-control" id="phone" type="tel" placeholder="(123) 456-7890" data-sb-validations="required" />
-                                <label for="phone">Phone number</label>
-                                <div class="invalid-feedback" data-sb-feedback="phone:required">A phone number is required.</div>
-                            </div>
-                            <!-- Message input-->
-                            <div class="form-floating mb-3">
-                                <textarea class="form-control" id="message" type="text" placeholder="Enter your message here..." style="height: 10rem" data-sb-validations="required"></textarea>
-                                <label for="message">Message</label>
-                                <div class="invalid-feedback" data-sb-feedback="message:required">A message is required.</div>
-                            </div>
-                            <!-- Submit success message-->
-                            <!---->
-                            <!-- This is what your users will see when the form-->
-                            <!-- has successfully submitted-->
-                            <div class="d-none" id="submitSuccessMessage">
-                                <div class="text-center mb-3">
-                                    <div class="fw-bolder">Form submission successful!</div>
-                                    To activate this form, sign up at
-                                    <br />
-                                    <a href="https://startbootstrap.com/solution/contact-forms">https://startbootstrap.com/solution/contact-forms</a>
-                                </div>
-                            </div>
-                            <!-- Submit error message-->
-                            <!---->
-                            <!-- This is what your users will see when there is-->
-                            <!-- an error submitting the form-->
-                            <div class="d-none" id="submitErrorMessage"><div class="text-center text-danger mb-3">Error sending message!</div></div>
-                            <!-- Submit Button-->
-                            <div class="d-grid"><button class="btn btn-primary btn-xl disabled" id="submitButton" type="submit">Submit</button></div>
-                        </form>
+                    <div class="col-lg-6">                    
+                       <form id="contactForm">
+    <div class="form-floating mb-3">
+        <input
+            class="form-control"
+            id="name"
+            type="text"
+            placeholder="Enter your name..."
+            required>
+        <label for="name">Full name</label>
+    </div>
+
+    <div class="form-floating mb-3">
+        <input
+            class="form-control"
+            id="email"
+            type="email"
+            placeholder="name@example.com"
+            required>
+        <label for="email">Email address</label>
+    </div>
+
+    <div class="form-floating mb-3">
+        <input
+            class="form-control"
+            id="phone"
+            type="tel"
+            placeholder="(123) 456-7890"
+            required>
+        <label for="phone">Phone number</label>
+    </div>
+
+    <div class="form-floating mb-3">
+        <textarea
+            class="form-control"
+            id="message"
+            placeholder="Enter your message here..."
+            style="height: 10rem"
+            required></textarea>
+        <label for="message">Message</label>
+    </div>
+
+    <div class="d-grid">
+        <button class="btn btn-primary btn-xl" id="submitButton" type="submit">
+            Submit
+        </button>
+    </div>
+
+    <p id="formStatus" class="form-status"></p>
+</form>
                     </div>
                 </div>
                 <div class="row gx-4 gx-lg-5 justify-content-center">
@@ -730,10 +825,7 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/SimpleLightbox/2.1.0/simpleLightbox.min.js"></script>
         <!-- Core theme JS-->
         <script src="script_inicio.js"></script>
-        <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
-        <!-- * *                               SB Forms JS                               * *-->
-        <!-- * * Activate your form at https://startbootstrap.com/solution/contact-forms * *-->
-        <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
-        <script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>
+  
+        
     </body>
 </html>
