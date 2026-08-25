@@ -24,7 +24,7 @@
         <input id="searchInput" placeholder="Busca LEGO, peluches, carros…">
         <button>Buscar</button>
       </form><p id="searchMessage" class="message"></p>
-    </div><img src="https://www.pinterest.com/pin/742460688615663458/visual-search/?x=0.101&y=0.059&w=0.81&h=0.893&cropSource=9&entrypoint=closeup_image_cutout" alt="Tren de juguete">
+    </div><img src="https://images.unsplash.com/photo-1558877385-81a1c7e67d72?auto=format&fit=crop&w=900&q=85" alt="Tren de juguete">
   </section>
   <section class="section">
     <p class="eyebrow">ENCUENTRA TU TESORO</p>
@@ -42,6 +42,17 @@
     <section id="explorar" class="section listings">
       <div class="title-row"><div><p class="eyebrow">CERCA DE TI</p>
         <h2 id="listingTitle">Todos los juguetes</h2></div>
+        <div class="listing-controls">
+          <select id="sortSelect">
+            <option value="recientes">Más recientes</option>
+            <option value="antiguos">Más antiguos</option>
+            <option value="nombre_az">Nombre A-Z</option>
+            <option value="nombre_za">Nombre Z-A</option>
+            <option value="precio_asc" hidden>Precio: menor a mayor</option>
+            <option value="precio_desc" hidden>Precio: mayor a menor</option>
+          </select>
+          <button type="button" id="favoritesToggle" class="clear"><i class="bi bi-heart"></i> Favoritos</button>
+        </div>
         <button class="clear" id="clearFilters" hidden>Ver todos</button>
       </div><div id="productGrid" class="product-grid"></div>
       <p id="emptyState" class="empty" hidden>No hay juguetes para esta búsqueda todavía.</p>
@@ -85,15 +96,7 @@
                   </section>
                     <section id="juguetes" class="profile-section">
                       <p class="eyebrow">TU CATÁLOGO</p><h2>Mis juguetes publicados</h2>
-                      <div class="mini-list"><article><img src="https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?auto=format&fit=crop&w=300&q=85" alt="Conejito">
-                        <div><h3>Conejito suave</h3>
-                          <p>Publicado hace 2 días</p>
-                          <span>Activo</span>
-                        </div></article><article><img src="https://images.unsplash.com/photo-1594787318286-3d835c1d207f?auto=format&fit=crop&w=300&q=85" alt="Camión"><div>
-                          <h3>Camión de rescate</h3>
-                          <p>Publicado hace 1 semana</p>
-                          <span>Activo</span>
-                        </div></article></div>
+                      <div class="mini-list" id="myProductsList"><p>Cargando tus artículos…</p></div>
                       </section>
                       <section id="informacion" class="profile-section info">
                         <div class="title-row"><div>
@@ -123,8 +126,11 @@
                   </div>
                 </section>
               </main>
- <div class="modal-backdrop" id="postModal" hidden><form class="modal" id="postForm"><button type="button" class="close" data-close="postModal">×</button><p class="eyebrow">PUBLICAR ARTÍCULO</p><h2>Cuéntanos qué ofreces</h2><label>Título<input id="postTitulo" placeholder="Ej. Bicicleta de montaña" required></label><label>Tipo de transacción<div class="type-toggle" id="postTipo"><button type="button" class="type-option" data-tipo="Venta">Venta</button><button type="button" class="type-option" data-tipo="Subasta">Subasta</button><button type="button" class="type-option" data-tipo="Intercambio">Intercambio</button></div></label><label id="postValorLabel">Precio<input id="postValor" type="number" min="0" step="0.01" placeholder="0.00"></label><label>Descripción<textarea id="postDescripcion" rows="3" placeholder="Estado, detalles, qué buscas a cambio..."></textarea></label><label>Fotos<input id="postImagenes" type="file" accept="image/png,image/jpeg,image/webp" multiple></label><div class="image-preview" id="postPreview"></div><p class="form-error" id="postError" hidden></p><button type="submit">Publicar artículo</button></form></div>
-</div>
+
+ <!-- MODAL: publicar artículo -->
+ <div class="modal-backdrop" id="postModal" hidden><form class="modal" id="postForm"><button type="button" class="close" data-close="postModal">×</button><p class="eyebrow">PUBLICAR ARTÍCULO</p><h2>Cuéntanos qué ofreces</h2><label>Título<input id="postTitulo" placeholder="Ej. Bicicleta de montaña" required></label><label>Categoría<select id="postCategoria" required><option value="">Selecciona una categoría</option><option>Peluches</option><option>Construcción</option><option>Vehículos</option><option>Muñecas</option><option>Juegos</option></select></label><label>Tipo de transacción<div class="type-toggle" id="postTipo"><button type="button" class="type-option" data-tipo="Venta">Venta</button><button type="button" class="type-option" data-tipo="Subasta">Subasta</button><button type="button" class="type-option" data-tipo="Intercambio">Intercambio</button></div></label><label id="postValorLabel">Precio<input id="postValor" type="number" min="0" step="0.01" placeholder="0.00"></label><label>Descripción<textarea id="postDescripcion" rows="3" placeholder="Estado, detalles, qué buscas a cambio..."></textarea></label><label>Fotos (mínimo 2, máximo 4)<input id="postImagenes" type="file" accept="image/png,image/jpeg,image/webp" multiple></label><div class="image-preview" id="postPreview"></div><p class="form-error" id="postError" hidden></p><button type="submit">Publicar artículo</button></form></div>
+
+  <!-- MODAL: perfil (existente, sin cambios) -->
   <div class="modal-backdrop" id="editModal" hidden>
     <form class="modal" id="profileForm"><button type="button" class="close" data-close="editModal">×</button>
       <p class="eyebrow">EDITA TU PERFIL</p>
@@ -138,6 +144,42 @@
       <p class="form-error" id="profileFormError" hidden></p>
       <button>Guardar cambios</button></form>
     </div>
+
+  <!-- MODAL: detalle de producto -->
+  <div class="modal-backdrop" id="productModal" hidden>
+    <div class="modal">
+      <button type="button" class="close" data-close="productModal">×</button>
+      <div id="productDetailBody"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: perfil del propietario -->
+  <div class="modal-backdrop" id="ownerModal" hidden>
+    <div class="modal">
+      <button type="button" class="close" data-close="ownerModal">×</button>
+      <div id="ownerModalBody"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: editar producto propio -->
+  <div class="modal-backdrop" id="editProductModal" hidden>
+    <form class="modal" id="editProductForm">
+      <button type="button" class="close" data-close="editProductModal">×</button>
+      <p class="eyebrow">EDITAR ARTÍCULO</p>
+      <h2>Actualiza tu publicación</h2>
+      <label>Título<input id="editTitulo" required></label>
+      <label>Categoría<select id="editCategoria" required><option value="">Selecciona una categoría</option><option>Peluches</option><option>Construcción</option><option>Vehículos</option><option>Muñecas</option><option>Juegos</option></select></label>
+      <label>Tipo de transacción<div class="type-toggle" id="editTipoToggle"><button type="button" class="type-option" data-tipo="Venta">Venta</button><button type="button" class="type-option" data-tipo="Subasta">Subasta</button><button type="button" class="type-option" data-tipo="Intercambio">Intercambio</button></div></label>
+      <label id="editValorLabel">Precio<input id="editValor" type="number" min="0" step="0.01" placeholder="0.00"></label>
+      <label>Descripción<textarea id="editDescripcion" rows="3"></textarea></label>
+      <label>Estado<select id="editEstado"><option value="Disponible">Disponible</option><option value="Intercambiado">Intercambiado</option><option value="Vendido">Vendido</option><option value="Oculto">Oculto</option></select></label>
+      <label>Fotos (mínimo 2, máximo 4)<input id="editImagenesInput" type="file" accept="image/png,image/jpeg,image/webp" multiple></label>
+      <div class="image-preview" id="editPreview"></div>
+      <p class="form-error" id="editError" hidden></p>
+      <button type="submit">Guardar cambios</button>
+    </form>
+  </div>
+
   <div class="modal-backdrop" id="logoutModal" hidden>
     <div class="modal"><p class="eyebrow">¿YA TE VAS?</p>
       <h2>Cerrar sesión</h2><p>Podrás volver a entrar cuando quieras.</p>
