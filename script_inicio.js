@@ -166,6 +166,13 @@ impactCounters.forEach((counter) => impactObserver.observe(counter));
 const btnRegister = document.querySelector('.btn-register');
 if (btnRegister) {
     btnRegister.addEventListener('click', () => {
-        window.location.href = '../SignIn/SignIn1.html';
+        window.location.href = 'Registro/SignUp1.html';
+    });
+}
+// Redirigir a Sign In (Registro/SignIn.html)
+const btnLogin = document.querySelector('#btnLogin');
+if (btnLogin) {
+    btnLogin.addEventListener('click', () => {
+        window.location.href = 'Registro/SignIn.html';
     });
 }
