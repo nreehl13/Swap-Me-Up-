@@ -1,5 +1,5 @@
 // ============================================================
-// SESIÓN
+// SESSION
 // ============================================================
 let SMU_USER = null;
 let SMU_PROFILE = null;
@@ -10,19 +10,49 @@ const smuSessionReady = (async () => {
   const session = await smuGetSession();
   if (!session) {
     window.location.href = '../Registro/SignIn.html';
-    throw new Error('sin sesión');
+    throw new Error('no session');
   }
   SMU_USER = session.user;
   return SMU_USER;
 })();
 
 // ============================================================
-// ESTADO DEL MARKETPLACE
+// DISPLAY LABEL MAPS
+// These translate the Spanish values stored in Supabase
+// (category, transaction_type, status) into English text for
+// the UI, WITHOUT changing the underlying stored values.
+// ============================================================
+const SMU_CATEGORY_LABELS = {
+  Todos: 'All',
+  Peluches: 'Plushies',
+  'Construcción': 'Construction',
+  'Vehículos': 'Vehicles',
+  'Muñecas': 'Dolls',
+  Juegos: 'Games'
+};
+const SMU_MODE_LABELS = {
+  Todos: 'All',
+  Intercambio: 'Trade',
+  Venta: 'Sale',
+  Subasta: 'Auction'
+};
+const SMU_STATUS_LABELS = {
+  Disponible: 'Available',
+  Intercambiado: 'Traded',
+  Vendido: 'Sold',
+  Oculto: 'Hidden'
+};
+function smuCategoryLabel(v) { return SMU_CATEGORY_LABELS[v] || v; }
+function smuModeLabel(v) { return SMU_MODE_LABELS[v] || v; }
+function smuStatusLabel(v) { return SMU_STATUS_LABELS[v] || v; }
+
+// ============================================================
+// MARKETPLACE STATE
 // ============================================================
 let category = 'Todos', mode = 'Todos', sortMode = 'recientes', favoritesOnly = false;
 const input = document.querySelector('#searchInput'), grid = document.querySelector('#productGrid');
 
-grid.insertAdjacentHTML('beforebegin', '<div class="market-tabs" id="marketTabs"><button class="market-tab active" data-mode="Intercambio"><i class="bi bi-arrow-left-right"></i> Intercambio</button><button class="market-tab" data-mode="Venta"><i class="bi bi-tag"></i> Venta</button><button class="market-tab" data-mode="Subasta"><i class="bi bi-hammer"></i> Subasta</button></div>');
+grid.insertAdjacentHTML('beforebegin', '<div class="market-tabs" id="marketTabs"><button class="market-tab active" data-mode="Intercambio"><i class="bi bi-arrow-left-right"></i> Trade</button><button class="market-tab" data-mode="Venta"><i class="bi bi-tag"></i> Sale</button><button class="market-tab" data-mode="Subasta"><i class="bi bi-hammer"></i> Auction</button></div>');
 const tabs = document.querySelector('#marketTabs'); Object.assign(tabs.style, { display: 'flex', gap: '10px', flexWrap: 'wrap', margin: '-4px 0 24px' });
 document.querySelectorAll('.market-tab').forEach(button => {
   Object.assign(button.style, { border: '1px solid #e8d9c0', borderRadius: '9px', padding: '11px 16px', background: '#fffdf8', color: '#4b3929', fontWeight: '700' });
@@ -42,13 +72,13 @@ function smuTruncate(text, n) { if (!text) return ''; return text.length > n ? t
 
 function smuPriceLabel(p) {
   if (p.transaction_type === 'Venta') return '$ ' + Number(p.price).toFixed(2);
-  if (p.transaction_type === 'Subasta') return 'SUBASTA';
-  return 'INTERCAMBIO';
+  if (p.transaction_type === 'Subasta') return 'AUCTION';
+  return 'TRADE';
 }
 
 function smuProductCard(p) {
   const isFav = SMU_FAVORITES.has(p.id);
-  return `<article class="card" data-id="${p.id}"><div class="product-image"><img src="${p.images[0]}" alt="${p.title}"><span class="type-badge ${p.transaction_type.toLowerCase()}">${p.transaction_type}</span><button type="button" class="fav-btn ${isFav ? 'active' : ''}" title="Favorito"><i class="bi ${isFav ? 'bi-heart-fill' : 'bi-heart'}"></i></button></div><div class="card-body"><h3>${p.title}</h3><p>${p.category}${p.description ? ' · ' + smuTruncate(p.description, 60) : ''}</p><div class="meta"><span>${new Date(p.created_at).toLocaleDateString('es-PA')}</span><strong>${smuPriceLabel(p)}</strong></div></div></article>`;
+  return `<article class="card" data-id="${p.id}"><div class="product-image"><img src="${p.images[0]}" alt="${p.title}"><span class="type-badge ${p.transaction_type.toLowerCase()}">${smuModeLabel(p.transaction_type)}</span><button type="button" class="fav-btn ${isFav ? 'active' : ''}" title="Favorite"><i class="bi ${isFav ? 'bi-heart-fill' : 'bi-heart'}"></i></button></div><div class="card-body"><h3>${p.title}</h3><p>${smuCategoryLabel(p.category)}${p.description ? ' · ' + smuTruncate(p.description, 60) : ''}</p><div class="meta"><span>${new Date(p.created_at).toLocaleDateString('en-US')}</span><strong>${smuPriceLabel(p)}</strong></div></div></article>`;
 }
 
 function smuUpdateSortOptions() {
@@ -78,7 +108,7 @@ async function render() {
   }
 
   const { data, error } = await qb;
-  if (error) { console.error('Error cargando productos:', error); toast('No se pudieron cargar los productos.'); return; }
+  if (error) { console.error('Error loading products:', error); toast('Could not load products.'); return; }
 
   let list = data || [];
   if (favoritesOnly) list = list.filter(p => SMU_FAVORITES.has(p.id));
@@ -91,10 +121,10 @@ async function render() {
     if (favBtn) favBtn.onclick = (e) => { e.stopPropagation(); smuToggleFavorite(card.dataset.id); };
   });
 
-  const sectionName = mode === 'Todos' ? 'Todos los juguetes' : `Productos para ${mode.toLowerCase()}`;
-  document.querySelector('#listingTitle').textContent = category === 'Todos' ? sectionName : `${category} · ${mode === 'Todos' ? 'Todos' : mode}`;
+  const sectionName = mode === 'Todos' ? 'All toys' : `${smuModeLabel(mode)} listings`;
+  document.querySelector('#listingTitle').textContent = category === 'Todos' ? sectionName : `${smuCategoryLabel(category)} · ${mode === 'Todos' ? 'All' : smuModeLabel(mode)}`;
   document.querySelector('#emptyState').hidden = list.length > 0;
-  document.querySelector('#searchMessage').textContent = q ? `${list.length} resultado${list.length === 1 ? '' : 's'} encontrado${list.length === 1 ? '' : 's'}.` : '';
+  document.querySelector('#searchMessage').textContent = q ? `${list.length} result${list.length === 1 ? '' : 's'} found.` : '';
 }
 
 document.querySelectorAll('.category').forEach(b => b.onclick = () => {
@@ -134,22 +164,22 @@ document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => documen
 document.querySelectorAll('.modal-backdrop').forEach(x => x.onclick = e => { if (e.target === x) x.hidden = true });
 
 // ============================================================
-// PERFIL (sin cambios respecto a la versión anterior)
+// PROFILE (unchanged logic from previous version)
 // ============================================================
 async function smuLoadProfile(user) {
   let { data: row, error } = await smuSupabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
-  if (error) console.error('Error cargando perfil:', error);
+  if (error) console.error('Error loading profile:', error);
   if (!row) {
     const meta = user.user_metadata || {};
     const initial = { id: user.id, name: meta.full_name || meta.name || '', cedula: meta.id_card || meta.cedula || '', phone: meta.phone || '', avatar_url: null, bio: '', location: '' };
     const { data: created, error: insertError } = await smuSupabase.from('profiles').insert(initial).select().single();
-    if (insertError) { console.error('Error creando perfil:', insertError); row = initial; } else row = created;
+    if (insertError) { console.error('Error creating profile:', insertError); row = initial; } else row = created;
   }
   return row;
 }
 
 function smuRenderProfile() {
-  const name = SMU_PROFILE.name || (SMU_USER.email ? SMU_USER.email.split('@')[0] : 'Usuario');
+  const name = SMU_PROFILE.name || (SMU_USER.email ? SMU_USER.email.split('@')[0] : 'User');
   document.querySelector('#profileName').textContent = name;
   document.querySelector('#shortName').textContent = name.split(' ')[0];
   document.querySelector('#profileEmail').textContent = SMU_USER.email || '—';
@@ -163,7 +193,7 @@ function smuRenderProfile() {
 }
 
 function smuOpenEditModal() {
-  if (!SMU_PROFILE) { toast('Tu perfil todavía se está cargando, intenta de nuevo.'); return; }
+  if (!SMU_PROFILE) { toast('Your profile is still loading, please try again.'); return; }
   document.querySelector('#nameField').value = SMU_PROFILE.name || '';
   document.querySelector('#emailField').value = SMU_USER.email || '';
   document.querySelector('#phoneField').value = SMU_PROFILE.phone || '';
@@ -183,56 +213,56 @@ document.querySelector('#profileForm').onsubmit = async (e) => {
   const phone = document.querySelector('#phoneField').value.trim();
   const location = document.querySelector('#locationField').value.trim();
   const bio = document.querySelector('#bioField').value.trim();
-  if (!name || !location) { errorBox.textContent = 'El nombre y la ubicación son obligatorios.'; errorBox.hidden = false; return; }
+  if (!name || !location) { errorBox.textContent = 'Name and location are required.'; errorBox.hidden = false; return; }
   const { data, error } = await smuSupabase.from('profiles').update({ name, phone, location, bio }).eq('id', SMU_USER.id).select().single();
-  if (error) { errorBox.textContent = 'No se pudo guardar: ' + error.message; errorBox.hidden = false; return; }
+  if (error) { errorBox.textContent = 'Could not save: ' + error.message; errorBox.hidden = false; return; }
   SMU_PROFILE = data; smuRenderProfile();
   document.querySelector('#editModal').hidden = true;
-  toast('Perfil actualizado correctamente.');
+  toast('Profile updated successfully.');
 };
 
 document.querySelector('#logoutButton').onclick = () => open('logoutModal');
 document.querySelector('#confirmLogout').onclick = async () => {
   document.querySelector('#logoutModal').hidden = true;
   const { error } = await smuSupabase.auth.signOut();
-  if (error) { toast('No se pudo cerrar sesión: ' + error.message); return; }
-  toast('Sesión cerrada. Hasta pronto.');
+  if (error) { toast('Could not log out: ' + error.message); return; }
+  toast('Signed out. See you soon.');
   setTimeout(() => { window.location.href = '../Registro/SignIn.html'; }, 900);
 };
 const sideMenu = document.querySelector('.side nav'); Object.assign(sideMenu.style, { display: 'grid', gridTemplateColumns: '1fr', gap: '4px', alignItems: 'stretch', width: '100%' });
 
 // ============================================================
-// FOTO DE PERFIL (sin cambios)
+// PROFILE PHOTO (unchanged)
 // ============================================================
 const avatar = document.querySelector('.avatar'), photoBox = document.createElement('div'), photoButton = document.createElement('button'), photoInput = document.createElement('input');
 Object.assign(photoBox.style, { position: 'relative', width: '124px', height: '124px', flex: '0 0 124px' });
 avatar.parentNode.insertBefore(photoBox, avatar); photoBox.appendChild(avatar);
 Object.assign(photoButton.style, { position: 'absolute', right: '0', bottom: '0', width: '37px', height: '37px', borderRadius: '50%', border: '3px solid white', background: '#2d6738', color: 'white', fontSize: '16px' });
-photoButton.type = 'button'; photoButton.innerHTML = '<i class="bi bi-camera-fill"></i>'; photoButton.title = 'Cambiar foto de perfil'; photoBox.appendChild(photoButton);
+photoButton.type = 'button'; photoButton.innerHTML = '<i class="bi bi-camera-fill"></i>'; photoButton.title = 'Change profile photo'; photoBox.appendChild(photoButton);
 photoInput.type = 'file'; photoInput.accept = 'image/png,image/jpeg,image/webp'; photoInput.hidden = true; photoBox.appendChild(photoInput);
 photoButton.onclick = () => photoInput.click();
 
 photoInput.onchange = async () => {
   const file = photoInput.files[0]; if (!file) return;
-  if (!SMU_USER) { toast('Tu sesión todavía se está cargando, intenta de nuevo.'); return; }
+  if (!SMU_USER) { toast('Your session is still loading, please try again.'); return; }
   const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-  if (!allowedTypes.includes(file.type)) { toast('Formato no permitido. Usa JPG, PNG o WEBP.'); photoInput.value = ''; return; }
-  if (file.size > 5 * 1024 * 1024) { toast('Elige una foto de hasta 5 MB.'); photoInput.value = ''; return; }
+  if (!allowedTypes.includes(file.type)) { toast('Format not allowed. Use JPG, PNG or WEBP.'); photoInput.value = ''; return; }
+  if (file.size > 5 * 1024 * 1024) { toast('Choose a photo up to 5 MB.'); photoInput.value = ''; return; }
   const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
   const path = `${SMU_USER.id}/avatar.${ext}`;
-  toast('Subiendo foto…');
+  toast('Uploading photo…');
   const { error: uploadError } = await smuSupabase.storage.from('avatars').upload(path, file, { upsert: true, cacheControl: '3600' });
-  if (uploadError) { toast('No se pudo subir la foto: ' + uploadError.message); photoInput.value = ''; return; }
+  if (uploadError) { toast('Could not upload photo: ' + uploadError.message); photoInput.value = ''; return; }
   const { data: publicUrlData } = smuSupabase.storage.from('avatars').getPublicUrl(path);
   const avatarUrl = publicUrlData.publicUrl + '?t=' + Date.now();
   const { error: updateError } = await smuSupabase.from('profiles').update({ avatar_url: avatarUrl }).eq('id', SMU_USER.id);
-  if (updateError) { toast('Foto subida pero no se pudo guardar en tu perfil: ' + updateError.message); photoInput.value = ''; return; }
+  if (updateError) { toast('Photo uploaded but could not be saved to your profile: ' + updateError.message); photoInput.value = ''; return; }
   if (SMU_PROFILE) SMU_PROFILE.avatar_url = avatarUrl;
-  avatar.src = avatarUrl; toast('Foto de perfil actualizada.'); photoInput.value = '';
+  avatar.src = avatarUrl; toast('Profile photo updated.'); photoInput.value = '';
 };
 
 // ============================================================
-// FAVORITOS
+// FAVORITES
 // ============================================================
 async function smuLoadFavorites() {
   const { data, error } = await smuSupabase.from('favorites').select('product_id').eq('user_id', SMU_USER.id);
@@ -246,7 +276,7 @@ async function smuToggleFavorite(productId) {
   } else {
     const { error } = await smuSupabase.from('favorites').insert({ user_id: SMU_USER.id, product_id: productId });
     if (!error) SMU_FAVORITES.add(productId);
-    else toast('No se pudo guardar el favorito: ' + error.message);
+    else toast('Could not save favorite: ' + error.message);
   }
   render();
   if (!document.querySelector('#productModal').hidden && SMU_CURRENT_PRODUCT && SMU_CURRENT_PRODUCT.id === productId) {
@@ -255,28 +285,28 @@ async function smuToggleFavorite(productId) {
 }
 
 // ============================================================
-// DETALLE DE PRODUCTO
+// PRODUCT DETAIL
 // ============================================================
 async function smuOpenProductDetail(productId) {
   const { data: p, error } = await smuSupabase.from('products').select('*').eq('id', productId).maybeSingle();
-  if (error || !p) { toast('No se pudo cargar el producto.'); return; }
+  if (error || !p) { toast('Could not load product.'); return; }
   SMU_CURRENT_PRODUCT = p;
 
   const { data: ownerProfile } = await smuSupabase.from('profiles').select('name, avatar_url').eq('id', p.user_id).maybeSingle();
-  const ownerName = ownerProfile?.name || 'Usuario';
+  const ownerName = ownerProfile?.name || 'User';
   const isMine = SMU_USER.id === p.user_id;
   const isFav = SMU_FAVORITES.has(p.id);
 
   document.querySelector('#productDetailBody').innerHTML = `
-    <p class="eyebrow">${p.category} · <span class="type-badge ${p.transaction_type.toLowerCase()}">${p.transaction_type}</span></p>
+    <p class="eyebrow">${smuCategoryLabel(p.category)} · <span class="type-badge ${p.transaction_type.toLowerCase()}">${smuModeLabel(p.transaction_type)}</span></p>
     <h2>${p.title}</h2>
     <div class="detail-gallery">${p.images.map((src, i) => `<img src="${src}" alt="${p.title} ${i + 1}">`).join('')}</div>
-    <p>${p.description || 'Sin descripción.'}</p>
+    <p>${p.description || 'No description.'}</p>
     <p class="detail-price"><strong>${smuPriceLabel(p)}</strong></p>
-    <p class="detail-owner">Publicado por: <strong>${ownerName}</strong>${isMine ? ' (tú)' : ' <button type="button" id="viewOwnerBtn" class="clear">Ver perfil</button>'}</p>
+    <p class="detail-owner">Posted by: <strong>${ownerName}</strong>${isMine ? ' (you)' : ' <button type="button" id="viewOwnerBtn" class="clear">View profile</button>'}</p>
     <div class="detail-actions">
-      <button type="button" id="detailFavBtn" class="fav-btn ${isFav ? 'active' : ''}"><i class="bi ${isFav ? 'bi-heart-fill' : 'bi-heart'}"></i> Favorito</button>
-      ${isMine ? '' : '<button type="button" id="contactBtn">Solicitar contacto</button>'}
+      <button type="button" id="detailFavBtn" class="fav-btn ${isFav ? 'active' : ''}"><i class="bi ${isFav ? 'bi-heart-fill' : 'bi-heart'}"></i> Favorite</button>
+      ${isMine ? '' : '<button type="button" id="contactBtn">Request contact</button>'}
     </div>`;
 
   document.querySelector('#detailFavBtn').onclick = () => smuToggleFavorite(p.id);
@@ -290,16 +320,16 @@ async function smuOpenProductDetail(productId) {
 
 async function smuRequestContact(p) {
   const { error } = await smuSupabase.from('contact_requests').insert({ product_id: p.id, requester_id: SMU_USER.id, owner_id: p.user_id });
-  if (error) { toast('No se pudo enviar la solicitud: ' + error.message); return; }
-  toast('Solicitud de contacto enviada.');
+  if (error) { toast('Could not send request: ' + error.message); return; }
+  toast('Contact request sent.');
 }
 
 async function smuOpenOwnerProfile(ownerId, name, avatarUrl) {
-  document.querySelector('#ownerModalBody').innerHTML = `<img class="avatar" src="${avatarUrl || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&q=85'}" alt="${name}"><h2>${name}</h2><div id="ownerProducts">Cargando artículos…</div>`;
+  document.querySelector('#ownerModalBody').innerHTML = `<img class="avatar" src="${avatarUrl || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&q=85'}" alt="${name}"><h2>${name}</h2><div id="ownerProducts">Loading items…</div>`;
   open('ownerModal');
   const { data } = await smuSupabase.from('products').select('*').eq('user_id', ownerId).eq('status', 'Disponible');
   const box = document.querySelector('#ownerProducts');
-  box.innerHTML = (data && data.length) ? `<div class="product-grid">${data.map(smuProductCard).join('')}</div>` : '<p>Sin artículos disponibles.</p>';
+  box.innerHTML = (data && data.length) ? `<div class="product-grid">${data.map(smuProductCard).join('')}</div>` : '<p>No items available.</p>';
   box.querySelectorAll('.card[data-id]').forEach(card => {
     const favBtn = card.querySelector('.fav-btn');
     if (favBtn) favBtn.onclick = (e) => { e.stopPropagation(); smuToggleFavorite(card.dataset.id); };
@@ -308,29 +338,29 @@ async function smuOpenOwnerProfile(ownerId, name, avatarUrl) {
 }
 
 // ============================================================
-// MIS JUGUETES PUBLICADOS
+// MY PUBLISHED ITEMS
 // ============================================================
 async function smuRenderMyProducts() {
   const list = document.querySelector('#myProductsList');
   const { data, error } = await smuSupabase.from('products').select('*').eq('user_id', SMU_USER.id).order('created_at', { ascending: false });
-  if (error) { list.innerHTML = '<p>No se pudieron cargar tus artículos.</p>'; return; }
-  if (!data.length) { list.innerHTML = '<p>Todavía no has publicado artículos.</p>'; return; }
+  if (error) { list.innerHTML = '<p>Could not load your items.</p>'; return; }
+  if (!data.length) { list.innerHTML = "<p>You haven't posted any items yet.</p>"; return; }
   list.innerHTML = data.map(p => `
     <article data-id="${p.id}">
       <img src="${p.images[0]}" alt="${p.title}">
       <div>
         <h3>${p.title}</h3>
-        <p>${new Date(p.created_at).toLocaleDateString('es-PA')} · ${p.status}</p>
-        <span>${p.transaction_type}</span>
+        <p>${new Date(p.created_at).toLocaleDateString('en-US')} · ${smuStatusLabel(p.status)}</p>
+        <span>${smuModeLabel(p.transaction_type)}</span>
         <div class="my-product-actions">
-          <button type="button" class="clear" data-edit="${p.id}">Editar</button>
+          <button type="button" class="clear" data-edit="${p.id}">Edit</button>
           <select data-status="${p.id}">
-            <option value="Disponible" ${p.status === 'Disponible' ? 'selected' : ''}>Disponible</option>
-            <option value="Intercambiado" ${p.status === 'Intercambiado' ? 'selected' : ''}>Intercambiado</option>
-            <option value="Vendido" ${p.status === 'Vendido' ? 'selected' : ''}>Vendido</option>
-            <option value="Oculto" ${p.status === 'Oculto' ? 'selected' : ''}>Oculto</option>
+            <option value="Disponible" ${p.status === 'Disponible' ? 'selected' : ''}>Available</option>
+            <option value="Intercambiado" ${p.status === 'Intercambiado' ? 'selected' : ''}>Traded</option>
+            <option value="Vendido" ${p.status === 'Vendido' ? 'selected' : ''}>Sold</option>
+            <option value="Oculto" ${p.status === 'Oculto' ? 'selected' : ''}>Hidden</option>
           </select>
-          <button type="button" class="clear" data-delete="${p.id}">Eliminar</button>
+          <button type="button" class="clear" data-delete="${p.id}">Delete</button>
         </div>
       </div>
     </article>`).join('');
@@ -341,8 +371,8 @@ async function smuRenderMyProducts() {
 
 async function smuChangeStatus(id, status) {
   const { error } = await smuSupabase.from('products').update({ status }).eq('id', id);
-  if (error) { toast('No se pudo actualizar el estado: ' + error.message); return; }
-  toast('Estado actualizado.');
+  if (error) { toast('Could not update status: ' + error.message); return; }
+  toast('Status updated.');
   render();
 }
 
@@ -355,29 +385,33 @@ async function smuDeleteProductImages(productId) {
 }
 
 async function smuDeleteProduct(id) {
-  if (!confirm('¿Eliminar este producto? Esta acción no se puede deshacer.')) return;
+  if (!confirm('Delete this product? This action cannot be undone.')) return;
   await smuDeleteProductImages(id);
   const { error } = await smuSupabase.from('products').delete().eq('id', id);
-  if (error) { toast('No se pudo eliminar: ' + error.message); return; }
-  toast('Producto eliminado.');
+  if (error) { toast('Could not delete: ' + error.message); return; }
+  toast('Product deleted.');
   smuRenderMyProducts();
   render();
 }
 
 // ============================================================
-// PUBLICAR ARTÍCULO (real, conectado a Supabase)
+// POST ITEM (connected to Supabase)
 // ============================================================
 let postTipo = '', postImages = [];
 const postValorLabel = document.querySelector('#postValorLabel');
 document.querySelectorAll('#postForm .type-option').forEach(opt => opt.onclick = () => {
   document.querySelectorAll('#postForm .type-option').forEach(o => o.classList.remove('active'));
   opt.classList.add('active'); postTipo = opt.dataset.tipo;
-  postValorLabel.childNodes[0].textContent = postTipo === 'Subasta' ? 'Puja inicial (opcional)' : postTipo === 'Intercambio' ? 'Valor de referencia (opcional)' : 'Precio';
+  postValorLabel.childNodes[0].textContent = postTipo === 'Subasta' ? 'Starting bid (optional)' : postTipo === 'Intercambio' ? 'Reference value (optional)' : 'Price';
 });
+function smuUpdateFileCount(countEl, n) {
+  if (!countEl) return;
+  countEl.textContent = n === 0 ? 'No photos selected' : `${n} photo${n === 1 ? '' : 's'} selected`;
+}
 document.querySelector('#postImagenes').onchange = e => {
   const files = [...e.target.files].slice(0, 4 - postImages.length);
   files.forEach(file => {
-    if (file.size > 5 * 1024 * 1024) { toast('Cada foto debe pesar hasta 5 MB.'); return; }
+    if (file.size > 5 * 1024 * 1024) { toast('Each photo must be up to 5 MB.'); return; }
     const reader = new FileReader();
     reader.onload = ev => { postImages.push({ file, dataUrl: ev.target.result }); renderPostPreview(); };
     reader.readAsDataURL(file);
@@ -385,13 +419,14 @@ document.querySelector('#postImagenes').onchange = e => {
   e.target.value = '';
 };
 function renderPostPreview() {
-  document.querySelector('#postPreview').innerHTML = postImages.map((img, i) => `<div class="thumb"><img src="${img.dataUrl}" alt="Foto ${i + 1}"><button type="button" data-i="${i}">×</button></div>`).join('');
+  document.querySelector('#postPreview').innerHTML = postImages.map((img, i) => `<div class="thumb"><img src="${img.dataUrl}" alt="Photo ${i + 1}"><button type="button" data-i="${i}">×</button></div>`).join('');
   document.querySelectorAll('#postPreview .thumb button').forEach(b => b.onclick = () => { postImages.splice(Number(b.dataset.i), 1); renderPostPreview(); });
+  smuUpdateFileCount(document.querySelector('#postFileCount'), postImages.length);
 }
 function resetPostForm() {
   document.querySelector('#postForm').reset(); postTipo = ''; postImages = [];
   document.querySelectorAll('#postForm .type-option').forEach(o => o.classList.remove('active'));
-  postValorLabel.childNodes[0].textContent = 'Precio';
+  postValorLabel.childNodes[0].textContent = 'Price';
   renderPostPreview();
   document.querySelector('#postError').hidden = true;
 }
@@ -420,13 +455,13 @@ document.querySelector('#postForm').onsubmit = async (e) => {
   const valorRaw = document.querySelector('#postValor').value;
   const descripcion = document.querySelector('#postDescripcion').value.trim();
 
-  if (!titulo || !categoria || !postTipo) { errorBox.textContent = 'Completa título, categoría y tipo de transacción.'; errorBox.hidden = false; return; }
-  if (postImages.length < 2 || postImages.length > 4) { errorBox.textContent = 'Debes subir entre 2 y 4 fotos.'; errorBox.hidden = false; return; }
-  if (postTipo === 'Venta' && (!valorRaw || Number(valorRaw) <= 0)) { errorBox.textContent = 'La venta requiere un precio válido.'; errorBox.hidden = false; return; }
+  if (!titulo || !categoria || !postTipo) { errorBox.textContent = 'Please complete the title, category, and transaction type.'; errorBox.hidden = false; return; }
+  if (postImages.length < 2 || postImages.length > 4) { errorBox.textContent = 'You must upload between 2 and 4 photos.'; errorBox.hidden = false; return; }
+  if (postTipo === 'Venta' && (!valorRaw || Number(valorRaw) <= 0)) { errorBox.textContent = 'Sale requires a valid price.'; errorBox.hidden = false; return; }
 
   const submitBtn = e.target.querySelector('button[type=submit]');
   submitBtn.disabled = true;
-  toast('Publicando artículo…');
+  toast('Posting item…');
 
   try {
     const productId = crypto.randomUUID();
@@ -444,11 +479,11 @@ document.querySelector('#postForm').onsubmit = async (e) => {
     });
     if (error) throw error;
     document.querySelector('#postModal').hidden = true;
-    toast('Artículo publicado correctamente.');
+    toast('Item posted successfully.');
     render();
     smuRenderMyProducts();
   } catch (err) {
-    errorBox.textContent = 'No se pudo publicar: ' + err.message;
+    errorBox.textContent = 'Could not post item: ' + err.message;
     errorBox.hidden = false;
   } finally {
     submitBtn.disabled = false;
@@ -456,23 +491,24 @@ document.querySelector('#postForm').onsubmit = async (e) => {
 };
 
 // ============================================================
-// EDITAR ARTÍCULO PROPIO
+// EDIT OWN ITEM
 // ============================================================
 let editProductId = null, editTipo = '', editImages = [];
 const editValorLabel = document.querySelector('#editValorLabel');
 document.querySelectorAll('#editTipoToggle .type-option').forEach(opt => opt.onclick = () => {
   document.querySelectorAll('#editTipoToggle .type-option').forEach(o => o.classList.remove('active'));
   opt.classList.add('active'); editTipo = opt.dataset.tipo;
-  editValorLabel.childNodes[0].textContent = editTipo === 'Subasta' ? 'Puja inicial (opcional)' : editTipo === 'Intercambio' ? 'Valor de referencia (opcional)' : 'Precio';
+  editValorLabel.childNodes[0].textContent = editTipo === 'Subasta' ? 'Starting bid (optional)' : editTipo === 'Intercambio' ? 'Reference value (optional)' : 'Price';
 });
 function renderEditPreview() {
-  document.querySelector('#editPreview').innerHTML = editImages.map((img, i) => `<div class="thumb"><img src="${img.type === 'existing' ? img.url : img.dataUrl}" alt="Foto ${i + 1}"><button type="button" data-i="${i}">×</button></div>`).join('');
+  document.querySelector('#editPreview').innerHTML = editImages.map((img, i) => `<div class="thumb"><img src="${img.type === 'existing' ? img.url : img.dataUrl}" alt="Photo ${i + 1}"><button type="button" data-i="${i}">×</button></div>`).join('');
   document.querySelectorAll('#editPreview .thumb button').forEach(b => b.onclick = () => { editImages.splice(Number(b.dataset.i), 1); renderEditPreview(); });
+  smuUpdateFileCount(document.querySelector('#editFileCount'), editImages.length);
 }
 document.querySelector('#editImagenesInput').onchange = e => {
   const files = [...e.target.files].slice(0, 4 - editImages.length);
   files.forEach(file => {
-    if (file.size > 5 * 1024 * 1024) { toast('Cada foto debe pesar hasta 5 MB.'); return; }
+    if (file.size > 5 * 1024 * 1024) { toast('Each photo must be up to 5 MB.'); return; }
     const reader = new FileReader();
     reader.onload = ev => { editImages.push({ type: 'new', file, dataUrl: ev.target.result }); renderEditPreview(); };
     reader.readAsDataURL(file);
@@ -482,7 +518,7 @@ document.querySelector('#editImagenesInput').onchange = e => {
 
 async function smuOpenEditProduct(id) {
   const { data: p, error } = await smuSupabase.from('products').select('*').eq('id', id).maybeSingle();
-  if (error || !p) { toast('No se pudo cargar el producto.'); return; }
+  if (error || !p) { toast('Could not load product.'); return; }
 
   editProductId = p.id;
   editTipo = p.transaction_type;
@@ -494,7 +530,7 @@ async function smuOpenEditProduct(id) {
   document.querySelector('#editValor').value = p.price ?? '';
   document.querySelector('#editEstado').value = p.status;
   document.querySelectorAll('#editTipoToggle .type-option').forEach(o => o.classList.toggle('active', o.dataset.tipo === editTipo));
-  editValorLabel.childNodes[0].textContent = editTipo === 'Subasta' ? 'Puja inicial (opcional)' : editTipo === 'Intercambio' ? 'Valor de referencia (opcional)' : 'Precio';
+  editValorLabel.childNodes[0].textContent = editTipo === 'Subasta' ? 'Starting bid (optional)' : editTipo === 'Intercambio' ? 'Reference value (optional)' : 'Price';
   renderEditPreview();
   document.querySelector('#editError').hidden = true;
   open('editProductModal');
@@ -511,9 +547,9 @@ document.querySelector('#editProductForm').onsubmit = async (e) => {
   const descripcion = document.querySelector('#editDescripcion').value.trim();
   const estado = document.querySelector('#editEstado').value;
 
-  if (!titulo || !categoria || !editTipo) { errorBox.textContent = 'Completa título, categoría y tipo de transacción.'; errorBox.hidden = false; return; }
-  if (editImages.length < 2 || editImages.length > 4) { errorBox.textContent = 'Debes tener entre 2 y 4 fotos.'; errorBox.hidden = false; return; }
-  if (editTipo === 'Venta' && (!valorRaw || Number(valorRaw) <= 0)) { errorBox.textContent = 'La venta requiere un precio válido.'; errorBox.hidden = false; return; }
+  if (!titulo || !categoria || !editTipo) { errorBox.textContent = 'Please complete the title, category, and transaction type.'; errorBox.hidden = false; return; }
+  if (editImages.length < 2 || editImages.length > 4) { errorBox.textContent = 'You must have between 2 and 4 photos.'; errorBox.hidden = false; return; }
+  if (editTipo === 'Venta' && (!valorRaw || Number(valorRaw) <= 0)) { errorBox.textContent = 'Sale requires a valid price.'; errorBox.hidden = false; return; }
 
   const submitBtn = e.target.querySelector('button[type=submit]');
   submitBtn.disabled = true;
@@ -543,11 +579,11 @@ document.querySelector('#editProductForm').onsubmit = async (e) => {
     if (error) throw error;
 
     document.querySelector('#editProductModal').hidden = true;
-    toast('Producto actualizado.');
+    toast('Product updated.');
     smuRenderMyProducts();
     render();
   } catch (err) {
-    errorBox.textContent = 'No se pudo guardar: ' + err.message;
+    errorBox.textContent = 'Could not save: ' + err.message;
     errorBox.hidden = false;
   } finally {
     submitBtn.disabled = false;
@@ -555,7 +591,7 @@ document.querySelector('#editProductForm').onsubmit = async (e) => {
 };
 
 // ============================================================
-// Arranque
+// Startup
 // ============================================================
 mode = 'Todos'; firstMarketTab.classList.remove('active');
 Object.assign(firstMarketTab.style, { background: '#fffdf8', color: '#4b3929', borderColor: '#e8d9c0' });
@@ -565,7 +601,7 @@ smuUpdateSortOptions();
   try {
     await smuSessionReady;
   } catch {
-    return; // ya se redirigió a SignIn.html
+    return; // already redirected to SignIn.html
   }
   SMU_PROFILE = await smuLoadProfile(SMU_USER);
   smuRenderProfile();
