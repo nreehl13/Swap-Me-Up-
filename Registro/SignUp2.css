@@ -15,7 +15,7 @@ html {
 body {
   font-family: "Montserrat", sans-serif;
  
-  background: #f8fafc;
+  background: #f6f2eb;
  
   color: #1e293b;
  
@@ -27,9 +27,9 @@ body {
 ==============================================================*/
  
 :root {
-  --primary: #1b5e20;
+  --primary: #2f5e1e;
  
-  --primary-dark: #2f5e1e;
+  --primary-dark: #1e3e12;
  
   --primary-light: #4caf50;
  
@@ -61,7 +61,7 @@ body {
  
   padding: 40px;
  
-  background: linear-gradient(135deg, #f8fafc, #eef5ef);
+  background: linear-gradient(135deg, #f6f2eb, #fff6e6);
 }
  
 .signup-container {
@@ -692,13 +692,13 @@ body {
 }
 /*==============================================================
                     SECURITY PAGE FIX
+   NOTA: la redeclaración de .signup-container (display:grid;
+   grid-template-columns:1fr 1fr) que vivía aquí se eliminó porque,
+   al estar fuera de cualquier @media y aparecer DESPUÉS del bloque
+   RESPONSIVE, anulaba el colapso a una columna en pantallas chicas.
+   La regla original de .signup-container (arriba, en SIGNUP LAYOUT)
+   ya cubre el layout de desktop.
 ==============================================================*/
- 
-.signup-container {
-  display: grid;
- 
-  grid-template-columns: 1fr 1fr;
-}
  
 /* evita que el formulario se pegue */
  
@@ -725,7 +725,7 @@ body {
 }
  
 .toggle-password:hover {
-  color: #1b5e20;
+  color: #2f5e1e;
 }
  
 /*==============================================================
@@ -803,11 +803,11 @@ body {
 .terms input {
   margin-top: 5px;
  
-  accent-color: #1b5e20;
+  accent-color: #2f5e1e;
 }
  
 .terms a {
-  color: #1b5e20;
+  color: #2f5e1e;
  
   font-weight: 700;
 }
