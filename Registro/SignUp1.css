@@ -16,7 +16,7 @@ body{
  
     font-family:"Montserrat",sans-serif;
  
-    background:#F8FAFC;
+    background:#F6F2EB;
  
     color:#1E293B;
  
@@ -30,7 +30,9 @@ body{
  
 :root{
  
-    --primary:#1B5E20;
+    --primary:#2F5E1E;
+ 
+    --primary-dark:#1E3E12;
  
     --primary-light:#4CAF50;
  
@@ -38,7 +40,7 @@ body{
  
     --white:#FFFFFF;
  
-    --background:#F8FAFC;
+    --background:#F6F2EB;
  
     --text:#1E293B;
  
@@ -110,7 +112,7 @@ input{
     padding:40px;
  
     background:
-    linear-gradient(135deg,#F8FAFC 0%,#EEF5EF 100%);
+    linear-gradient(135deg,#F6F2EB 0%,#FFF6E6 100%);
  
 }
  
@@ -743,7 +745,7 @@ input{
  
     border-radius:18px;
  
-    background:linear-gradient(135deg,#1B5E20,#388E3C);
+    background:linear-gradient(135deg,#2F5E1E,#417B2C);
  
     color:#fff;
  
@@ -1009,4 +1011,60 @@ input{
  
     }
  
+}
+/*==============================================================
+                    RESPONSIVE
+   (mismo comportamiento que SignIn.css, para que SignUp1 no se
+   quede comprimido en tablet/mobile: las columnas colapsan y el
+   contenido puede crecer verticalmente en vez de cortarse)
+==============================================================*/
+
+@media (max-width: 1100px) {
+
+    .signup-container{
+
+        grid-template-columns:1fr;
+
+    }
+
+    /* Full Name/Email y Phone/ID pasan de 2 a 1 columna antes de
+       que el panel verde colapse, para que los inputs no queden
+       demasiado angostos */
+    .form-row{
+
+        grid-template-columns:1fr;
+
+        gap:20px;
+
+    }
+
+}
+
+@media (max-width: 600px){
+
+    .signup{
+
+        padding:20px;
+
+    }
+
+    .signup-left,
+    .signup-right{
+
+        padding:35px;
+
+    }
+
+    .brand h1{
+
+        font-size:2.2rem;
+
+    }
+
+    .form-header h2{
+
+        font-size:1.8rem;
+
+    }
+
 }
