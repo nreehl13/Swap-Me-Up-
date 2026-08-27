@@ -1,0 +1,73 @@
+/* ==================================================================
+   SWAP ME UP — GLOBAL DESIGN TOKENS
+   ------------------------------------------------------------------
+   Este archivo NO redefine componentes ni estructura: solo declara
+   variables CSS compartidas y un puñado de reglas de bajo riesgo
+   (tipografía de encabezados, foco, selección) para que Inicio,
+   SignUp1/2, SignIn y Dashboard se sientan una sola aplicación.
+
+   Se carga ANTES del CSS propio de cada página, así que cualquier
+   regla existente en el CSS de la página sigue ganando por orden de
+   cascada (misma especificidad = gana la última declarada). Esto
+   significa: cero riesgo de romper layout existente.
+
+   Los valores están tomados de style_inicio.css (la identidad
+   visual de referencia) y de la paleta oficial SwapMeUp.
+   ================================================================== */
+
+:root {
+  /* ---- Paleta oficial SMU ---- */
+  --color-primary:        #2F5E1E; /* Verde SMU */
+  --color-primary-dark:   #1E3E12; /* Verde Bosque */
+  --color-primary-hover:  #244918; /* usado ya en Inicio para hover de botones */
+  --color-beige:          #EDE5D6; /* Beige SMU */
+  --color-beige-light:    #F6F2EB; /* Beige claro */
+  --color-cream:          #FFF6E6; /* Crema */
+  --color-terracota:      #D8B49A; /* Terracota suave */
+  --color-gray:           #4D4D4D; /* Gris SMU */
+  --color-white:          #FFFFFF;
+
+  /* ---- Texto ---- */
+  --color-text:           #2E2E2E;
+  --color-text-muted:     #6d5c4d;
+
+  /* ---- Tipografía compartida ---- */
+  --font-heading: 'Fraunces', Georgia, serif;
+  --font-body:    'Inter', 'DM Sans', 'Montserrat', sans-serif;
+
+  /* ---- Radios (según patrones ya usados en Inicio) ---- */
+  --radius-sm:   8px;
+  --radius:      14px;
+  --radius-lg:   22px;
+  --radius-pill: 999px;
+
+  /* ---- Sombras ---- */
+  --shadow-sm: 0 8px 20px rgba(0, 0, 0, 0.08);
+  --shadow:    0 18px 35px rgba(47, 94, 30, 0.14);
+  --shadow-lg: 0 24px 55px rgba(0, 0, 0, 0.12);
+}
+
+/* Encabezados con la misma familia tipográfica en todo el proyecto.
+   Ya es así en Inicio y Dashboard; esto lo extiende a SignIn/SignUp,
+   que hoy heredan Montserrat también en h1/h2. */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
+/* Foco accesible y consistente con la marca.
+   Usa :focus-visible (no :focus) para no interferir con reglas ya
+   existentes basadas en :focus / :focus-within en cada página. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Selección de texto con el acento de marca */
+::selection {
+  background: var(--color-primary);
+  color: #fff;
+}
