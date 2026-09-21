@@ -10923,6 +10923,25 @@ hr.divider-light {
     flex-shrink:0;
     white-space:nowrap;
 }
+
+#mainNav .navbar-collapse.show,
+#mainNav .navbar-collapse.collapsing{
+    background:#2F5E1E;
+    padding:20px 24px 28px;
+    border-radius:0 0 18px 18px;
+    box-shadow:0 14px 35px rgba(0,0,0,.25);
+}
+
+#mainNav .navbar-collapse.show .nav-link,
+#mainNav .navbar-collapse.collapsing .nav-link{
+    padding-top:8px;
+    padding-bottom:8px;
+}
+
+#mainNav .navbar-collapse.show .d-flex,
+#mainNav .navbar-collapse.collapsing .d-flex{
+    margin-top:12px;
+}
 #mainNav.navbar-shrink{
 
     background:#2F5E1E;
